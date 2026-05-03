@@ -9,7 +9,7 @@ var API_PROVIDERS = {
         name: 'MXAPI',
         submitUrl: 'http://localhost:3010/api/generate',
         taskUrl: 'http://localhost:3010/api/task',
-        healthUrl: 'http://localhost:3010/health',
+        healthUrl: '/app/product-image/api/health',
         authHeader: 'Authorization',
         submitTimeout: 30000,  // 提交超时 30s
         pollTimeout: 90000,    // 轮询超时 90s
