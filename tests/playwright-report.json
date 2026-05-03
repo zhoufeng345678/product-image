@@ -1,0 +1,103 @@
+{
+  "date": "2026-05-01T08:04:30.517Z",
+  "summary": {
+    "total": 18,
+    "pass": 16,
+    "fail": 2,
+    "passRate": "89%"
+  },
+  "results": [
+    {
+      "id": 1,
+      "name": "页面标题正确",
+      "status": "PASS"
+    },
+    {
+      "id": 2,
+      "name": "JS模块全部加载 (config/storage/api/ui)",
+      "status": "PASS"
+    },
+    {
+      "id": 3,
+      "name": "核心DOM元素存在",
+      "status": "PASS"
+    },
+    {
+      "id": 4,
+      "name": "Header API状态指示灯渲染",
+      "status": "PASS"
+    },
+    {
+      "id": 5,
+      "name": "Tab切换：生成↔历史",
+      "status": "PASS"
+    },
+    {
+      "id": 6,
+      "name": "图片比例选择",
+      "status": "PASS"
+    },
+    {
+      "id": 7,
+      "name": "提示词增强",
+      "status": "PASS"
+    },
+    {
+      "id": 8,
+      "name": "API Key保存并Toast提示",
+      "status": "PASS"
+    },
+    {
+      "id": 9,
+      "name": "供应商切换不丢失状态",
+      "status": "PASS"
+    },
+    {
+      "id": 10,
+      "name": "生成按钮-错误提示",
+      "status": "PASS"
+    },
+    {
+      "id": 11,
+      "name": "进度可视化元素",
+      "status": "PASS"
+    },
+    {
+      "id": 12,
+      "name": "P1-6: 草稿自动恢复",
+      "status": "PASS"
+    },
+    {
+      "id": 13,
+      "name": "P1-11: 历史缩略图懒加载",
+      "status": "FAIL",
+      "error": "data-src未设置"
+    },
+    {
+      "id": 14,
+      "name": "P1-12: 并发控制锁",
+      "status": "FAIL",
+      "error": "page.fill: Timeout 30000ms exceeded.\nCall log:\n  - waiting for locator('#promptInput')\n    - locator resolved to <textarea id=\"promptInput\" class=\"prompt-input\" placeholder=\"例如：白色陶瓷花瓶，简约北欧风格，放在原木桌面上...\"></textarea>\n    - fill(\"并发测试\")\n  - attempting fill action\n    2 × waiting for element to be visible, enabled and editable\n      - element is not visible\n    - retrying fill action\n    - waiting 20ms\n    2 × waiting for element to be visible, enabled and editable\n      - element is not visible\n    - retrying fill action\n      - waiting 100ms\n    60 × waiting for element to be visible, enabled and editable\n       - element is not visible\n     - retrying fill action\n       - waiting 500ms\n"
+    },
+    {
+      "id": 15,
+      "name": "移动端响应式布局 (375px)",
+      "status": "PASS"
+    },
+    {
+      "id": 16,
+      "name": "P0-3: 页面加载后自动健康检查",
+      "status": "PASS"
+    },
+    {
+      "id": 17,
+      "name": "CSS外链加载",
+      "status": "PASS"
+    },
+    {
+      "id": 18,
+      "name": "P1-14: 全局错误边界",
+      "status": "PASS"
+    }
+  ]
+}

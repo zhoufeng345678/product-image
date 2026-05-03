@@ -1,0 +1,3675 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>【v3.0-已修复】电商图片生成器 v2.0 | 材视 MaterialView</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: linear-gradient(180deg, #f8f9fc 0%, #f0f2f8 100%);
+            color: #1d1d1f;
+            min-height: 100vh;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 16px 30px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 16px rgba(102,126,234,0.2);
+            position: relative;
+            z-index: 100;
+        }
+        .header h1 { font-size: 20px; font-weight: 600; letter-spacing: -0.3px; }
+        .header .subtitle { font-size: 12px; opacity: 0.8; margin-top: 2px; }
+        .container {
+            display: flex;
+            flex-direction: row;
+            height: calc(100vh - 64px);
+            overflow: hidden;
+        }
+        /* 左侧面板 */
+        .left-panel {
+            width: 35%;
+            min-width: 320px;
+            max-width: 480px;
+            background: white;
+            border-right: 1px solid #e5e5e7;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .panel-tabs {
+            display: flex;
+            border-bottom: 1px solid #e5e5e7;
+        }
+        .panel-tab {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            flex: 1;
+            padding: 12px;
+            text-align: center;
+            font-size: 14px;
+            cursor: pointer;
+            border: none;
+            background: none;
+            color: #86868b;
+            transition: all 0.2s;
+        }
+        .panel-tab:hover {
+            color: #667eea;
+            background: rgba(102,126,234,0.05);
+        }
+        .panel-tab.active {
+            color: #667eea;
+            border-bottom: 2px solid #667eea;
+            font-weight: 500;
+        }
+        .panel-content {
+            animation: tab-fade-in 0.3s ease-out;
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+        }
+        .prompt-section { display: flex; flex-direction: column; height: 100%; }
+        .prompt-label {
+            font-size: 13px;
+            color: #86868b;
+            margin-bottom: 8px;
+        }
+        .prompt-input {
+            width: 100%;
+            min-height: 120px;
+            padding: 14px;
+            border: 1.5px solid #d2d2d7;
+            border-radius: 12px;
+            font-size: 15px;
+            line-height: 1.6;
+            resize: vertical;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            font-family: inherit;
+            background: #fafafa;
+        }
+        .prompt-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102,126,234,0.15);
+            background: white;
+        }
+        .enhance-btn {
+            margin-top: 12px;
+            padding: 10px 16px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s, opacity 0.2s;
+            box-shadow: 0 2px 8px rgba(102,126,234,0.3);
+        }
+        .enhance-btn:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(102,126,234,0.4);
+        }
+        .aspect-section {
+            margin-top: 16px;
+        }
+        .reference-section {
+            margin-top: 16px;
+        }
+        .reference-label {
+            font-size: 13px;
+            color: #86868b;
+            margin-bottom: 8px;
+        }
+        /* 上传区域样式 */
+        .upload-area {
+            border: 2px dashed #d2d2d7;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.25s;
+            background: #fafafa;
+        }
+        .upload-area:hover {
+            border-color: #667eea;
+            background: #f0f0ff;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(102,126,234,0.15);
+        }
+        .upload-area.dragover {
+            border-color: #667eea;
+            background: #e8e8ff;
+            border-style: solid;
+            transform: scale(1.01);
+        }
+        .upload-icon {
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+        .upload-text {
+            font-size: 14px;
+            color: #86868b;
+        }
+        .upload-hint {
+            font-size: 12px;
+            color: #aeaeb2;
+            margin-top: 4px;
+        }
+        .upload-input {
+            display: none;
+        }
+        /* 已上传图片列表 */
+        .uploaded-images {
+            margin-top: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .uploaded-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 12px;
+            background: #f5f5f7;
+            border-radius: 8px;
+            font-size: 13px;
+        }
+        .uploaded-item img {
+            width: 40px;
+            height: 40px;
+            object-fit: cover;
+            border-radius: 6px;
+        }
+        .uploaded-item .file-info {
+            flex: 1;
+            overflow: hidden;
+        }
+        .uploaded-item .file-name {
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .uploaded-item .file-url {
+            font-size: 11px;
+            color: #667eea;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .uploaded-item .remove-btn {
+            color: #ff3b30;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        .uploaded-item .remove-btn:hover {
+            background: rgba(255,59,48,0.1);
+        }
+        .reference-input {
+            width: 100%;
+            min-height: 80px;
+            padding: 10px 14px;
+            border: 1.5px solid #d2d2d7;
+            border-radius: 10px;
+            font-size: 13px;
+            line-height: 1.6;
+            resize: vertical;
+            transition: border-color 0.2s;
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            margin-top: 12px;
+        }
+        .reference-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102,126,234,0.15);
+        }
+        .reference-hint {
+            font-size: 12px;
+            color: #aeaeb2;
+            margin-top: 6px;
+            line-height: 1.5;
+        }
+        .aspect-label {
+            font-size: 13px;
+            color: #86868b;
+            margin-bottom: 8px;
+        }
+        .aspect-options {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .aspect-btn {
+            padding: 10px 14px;
+            border: 1.5px solid #d2d2d7;
+            border-radius: 10px;
+            background: white;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            min-width: 64px;
+        }
+        .aspect-btn:hover {
+            border-color: #667eea;
+            background: #f8f8ff;
+        }
+        .aspect-btn.active {
+            border-color: #667eea;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 2px 8px rgba(102,126,234,0.3);
+        }
+        .aspect-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .aspect-icon .ratio-box {
+            border: 1.5px solid currentColor;
+            border-radius: 2px;
+        }
+        .generate-btn {
+            margin-top: 20px;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s, opacity 0.2s;
+            box-shadow: 0 4px 16px rgba(102,126,234,0.35);
+            letter-spacing: 0.3px;
+        }
+        .generate-btn:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 24px rgba(102,126,234,0.45);
+        }
+        .generate-btn:active {
+            transform: translateY(0);
+        }
+        .generate-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        /* 历史记录 */
+        .history-list { display: flex; flex-direction: column; gap: 10px; }
+        .history-item {
+            padding: 14px;
+            background: #f5f5f7;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .history-item:hover { background: #e8e8ed; transform: translateX(4px); }
+        .history-prompt {
+            font-size: 14px;
+            line-height: 1.5;
+            margin-bottom: 6px;
+        }
+        .history-meta {
+            font-size: 12px;
+            color: #86868b;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .history-delete {
+            color: #ff3b30;
+            cursor: pointer;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+        .history-delete:hover { background: rgba(255,59,48,0.1); }
+        .empty-state {
+            text-align: center;
+            color: #86868b;
+            padding: 40px 20px;
+            font-size: 14px;
+        }
+        /* 右侧展示区 */
+        .right-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 20px;
+            overflow-y: auto;
+            background: #f5f5f7;
+            background-image: radial-gradient(circle, #d1d1d6 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+        .image-display {
+            max-width: 100%;
+            text-align: center;
+            width: 100%;
+        }
+        .image-display img {
+            max-width: 100%;
+            max-height: 85vh;
+            width: auto;
+            height: auto;
+            object-fit: contain;
+            border-radius: 16px;
+            box-shadow: 0 8px 40px rgba(0,0,0,0.12);
+            animation: scaleIn 0.3s ease-out;
+        }
+        @keyframes scaleIn {
+            from { transform: scale(0.95); opacity: 0; }
+            to   { transform: scale(1);    opacity: 1; }
+        }
+        .image-actions {
+            margin-top: 20px;
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+        }
+        /* FAB 下载按钮 */
+        .fab-download {
+            position: absolute;
+            bottom: 16px;
+            right: 16px;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            box-shadow: 0 4px 16px rgba(102,126,234,0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.2s, box-shadow 0.2s;
+            z-index: 5;
+        }
+        .fab-download:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 24px rgba(102,126,234,0.55);
+        }
+        .fab-download:active {
+            transform: scale(0.95);
+        }
+        /* 图片容器相对定位，用于 FAB 定位 */
+        .img-wrapper {
+            position: relative;
+            display: inline-block;
+            max-width: 100%;
+        }
+        .img-wrapper img {
+            display: block;
+        }
+        /* 按钮 ripple 效果 */
+        .action-btn, .generate-btn, .enhance-btn {
+            position: relative;
+            overflow: hidden;
+        }
+        .action-btn::after, .generate-btn::after, .enhance-btn::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle, rgba(255,255,255,0.4) 0%, transparent 70%);
+            transform: scale(0);
+            transition: transform 0.4s ease-out;
+        }
+        .action-btn:active::after, .generate-btn:active::after, .enhance-btn:active::after {
+            transform: scale(2);
+        }
+
+
+        .action-btn {
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-size: 14px;
+            cursor: pointer;
+            border: 1.5px solid #d2d2d7;
+            background: white;
+            transition: all 0.2s;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+        }
+        .action-btn:hover {
+            border-color: #667eea;
+            color: #667eea;
+            transform: translateY(-1px);
+            box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+        }
+        .action-btn.primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            box-shadow: 0 2px 8px rgba(102,126,234,0.3);
+        }
+        .action-btn.primary:hover {
+            color: white;
+            box-shadow: 0 4px 12px rgba(102,126,234,0.4);
+        }
+        /* 加载状态 - 双环旋转 */
+        .loading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+        }
+        .spinner {
+            width: 48px;
+            height: 48px;
+            border: 3px solid #e5e5e7;
+            border-top-color: #667eea;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            position: relative;
+        }
+        .spinner::after {
+            content: '';
+            position: absolute;
+            inset: 5px;
+            border: 2.5px solid transparent;
+            border-top-color: #764ba2;
+            border-radius: 50%;
+            animation: spin 1.2s linear infinite reverse;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes tab-fade-in {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes card-fade-in {
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .loading-subtext {
+            font-size: 13px;
+            color: #a1a1a6;
+            margin-top: -8px;
+        }
+
+        .loading-text {
+            font-size: 15px;
+            color: #86868b;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+        .progress-bar {
+            width: 200px;
+            height: 4px;
+            background: #e5e5e7;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 2px;
+            animation: progress 2s ease-in-out infinite;
+        }
+        @keyframes progress {
+            0% { width: 0; }
+            50% { width: 70%; }
+            100% { width: 100%; }
+        }
+        /* 占位状态 */
+        .placeholder {
+            text-align: center;
+            color: #86868b;
+        }
+        @keyframes floatIcon {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+        .placeholder-icon {
+            font-size: 64px;
+            margin-bottom: 16px;
+            animation: floatIcon 3s ease-in-out infinite;
+        }
+        .placeholder-text { font-size: 16px; }
+        /* 错误提示 */
+        .error-msg {
+            padding: 12px 16px;
+            background: #fff5f5;
+            border: 1px solid #ffcccc;
+            border-radius: 8px;
+            color: #d32f2f;
+            font-size: 13px;
+            margin-top: 12px;
+        }
+        /* 上传进度 */
+        .upload-progress {
+            margin-top: 8px;
+        }
+        .upload-progress-bar {
+            width: 100%;
+            height: 4px;
+            background: #e5e5e7;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        .upload-progress-fill {
+            height: 100%;
+            background: #667eea;
+            border-radius: 2px;
+            transition: width 0.3s;
+        }
+        .upload-progress-text {
+        }
+        /* 批量生成网格 */
+        .batch-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 16px;
+            width: 100%;
+        }
+        .batch-card {
+            animation: card-fade-in 0.5s ease-out forwards;
+            opacity: 0;
+            transform: translateY(20px);
+            text-align: center;
+            background: white;
+            border-radius: 16px;
+            padding: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            overflow: hidden;
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
+            cursor: pointer;
+        }
+        .batch-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 12px 36px rgba(0,0,0,0.18);
+        }
+        .batch-card img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 12px;
+            object-fit: contain;
+        }
+        .batch-card-actions {
+            margin-top: 12px;
+        }
+        /* 批量生成 */
+        .batch-section {
+            margin-top: 16px;
+        }
+        /* 平滑滚动 */
+        html {
+            scroll-behavior: smooth;
+        }
+        /* 自定义滚动条 */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #c1c1c6;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #a1a1a6;
+        }
+        /* ===== 新增强：Section 分组 ===== */
+        .section-group {
+            margin-bottom: 0;
+        }
+        .section-group + .section-group {
+            margin-top: 0;
+        }
+        .section-header {
+            font-size: 13px;
+            font-weight: 600;
+            color: #1d1d1f;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .section-divider {
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #e5e5e7, transparent);
+            margin: 18px 0;
+        }
+
+        /* ===== 新增强：Tab 切换动画 ===== */
+        .panel-content {
+            animation: tab-fade-in 0.3s ease-out;
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+        }
+        .panel-content.tab-fade-in {
+            animation: tabFadeIn 0.25s ease-out;
+        }
+        @keyframes tabFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(6px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* ===== 新增强：Toast 通知 ===== */
+        .toast-container {
+            position: fixed;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 9999;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+        /* Toast 图标样式 */
+        .toast-icon { font-size: 18px; margin-right: 8px; }
+        .toast-message { flex: 1; }
+        .toast {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 16px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            font-size: 14px;
+            color: #1d1d1f;
+            animation: toast-in 0.3s ease-out;
+            max-width: 320px;
+            margin-bottom: 8px;
+        }
+        .toast-success { border-left: 4px solid #34c759; }
+        .toast-error { border-left: 4px solid #ff3b30; }
+        .toast-info { border-left: 4px solid #007aff; }
+        .toast-warning { border-left: 4px solid #ff9500; }
+        @keyframes toast-in {
+            from { opacity: 0; transform: translateY(-20px) scale(0.9); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .toast-out {
+            opacity: 0;
+            transform: translateY(-20px) scale(0.9);
+            transition: all 0.3s ease-out;
+        }
+
+        .toast {
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 500;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+            pointer-events: auto;
+            animation: toastSlideIn 0.3s ease-out;
+            max-width: 90vw;
+            text-align: center;
+            line-height: 1.4;
+        }
+        .toast.toast-error {
+            background: #d32f2f;
+            color: white;
+        }
+        .toast.toast-success {
+            background: #2e7d32;
+            color: white;
+        }
+        .toast.toast-info {
+            background: #1565c0;
+            color: white;
+        }
+        .toast.toast-hiding {
+            animation: toastSlideOut 0.3s ease-in forwards;
+        }
+        @keyframes toastSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        @keyframes toastSlideOut {
+            from {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            to {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+        }
+
+        /* ===== 新增强：按钮 Ripple 效果 ===== */
+        .btn-ripple {
+            position: relative;
+            overflow: hidden;
+        }
+        .btn-ripple .ripple-circle {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.35);
+            transform: scale(0);
+            animation: rippleAnim 0.6s ease-out;
+            pointer-events: none;
+        }
+        @keyframes rippleAnim {
+            to {
+                transform: scale(4);
+                opacity: 0;
+            }
+        }
+
+        /* ===== 新增强：上传缩略图网格 ===== */
+        .uploaded-images {
+            margin-top: 12px;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+        .uploaded-item {
+            position: relative;
+            border-radius: 10px;
+            overflow: hidden;
+            background: #f5f5f7;
+            aspect-ratio: 1;
+            cursor: default;
+            transition: box-shadow 0.2s;
+        }
+        .uploaded-item:hover {
+            box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+        }
+        .uploaded-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+        .uploaded-item .file-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.2s;
+            padding: 6px;
+        }
+        .uploaded-item:hover .file-overlay {
+            opacity: 1;
+        }
+        .uploaded-item .file-name-overlay {
+            color: white;
+            font-size: 11px;
+            text-align: center;
+            word-break: break-all;
+            line-height: 1.3;
+            margin-bottom: 6px;
+            max-height: 3.6em;
+            overflow: hidden;
+        }
+        .uploaded-item .remove-btn {
+            background: rgba(255, 59, 48, 0.9);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 26px;
+            height: 26px;
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.15s;
+            line-height: 1;
+        }
+        .uploaded-item .remove-btn:hover {
+            transform: scale(1.15);
+        }
+
+        /* ===== 平板端响应式 (769px - 1024px) */
+        @media (min-width: 769px) and (max-width: 1024px) {
+            .left-panel {
+                width: 38%;
+                min-width: 280px;
+            }
+            .batch-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        /* 移动端响应式 (≤768px) */
+        @media (max-width: 768px) {
+            .header {
+                padding: 12px 16px;
+                flex-direction: column;
+                gap: 8px;
+                text-align: center;
+            }
+            .header h1 { font-size: 18px; }
+            .container {
+                flex-direction: column;
+                height: auto;
+            }
+            /* 左侧面板改为底部抽屉 */
+            .left-panel {
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                width: 100%;
+                min-width: auto;
+                max-width: none;
+                height: 70vh;
+                border-right: none;
+                border-bottom: none;
+                border-top: 1px solid #e5e5e7;
+                border-radius: 16px 16px 0 0;
+                z-index: 900;
+                transform: translateY(100%);
+                transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+                box-shadow: 0 -4px 24px rgba(0,0,0,0.15);
+            }
+            .left-panel.drawer-open {
+                transform: translateY(0);
+            }
+            .panel-tabs {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+            .panel-tab {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                padding: 10px 12px;
+                font-size: 13px;
+                white-space: nowrap;
+            }
+            .panel-content {
+            animation: tab-fade-in 0.3s ease-out;
+                padding: 16px;
+            }
+            .right-panel {
+                min-height: 60vh;
+                padding: 16px;
+                padding-bottom: 80px;
+            }
+            .image-display img {
+                max-width: 100%;
+                max-height: 70vh;
+                width: auto;
+                height: auto;
+                object-fit: contain;
+            }
+            .batch-grid {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+            .image-actions {
+                flex-direction: column;
+                width: 100%;
+            }
+        /* 按钮 ripple 效果 */
+        .action-btn, .generate-btn, .enhance-btn {
+            position: relative;
+            overflow: hidden;
+        }
+        .action-btn::after, .generate-btn::after, .enhance-btn::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle, rgba(255,255,255,0.4) 0%, transparent 70%);
+            transform: scale(0);
+            transition: transform 0.4s ease-out;
+        }
+        .action-btn:active::after, .generate-btn:active::after, .enhance-btn:active::after {
+            transform: scale(2);
+        }
+
+
+            .action-btn {
+                width: 100%;
+                text-align: center;
+            }
+            .aspect-options {
+                flex-wrap: wrap;
+            }
+            .aspect-btn {
+                flex: 1;
+                min-width: 60px;
+                text-align: center;
+            }
+            .generate-btn {
+                font-size: 15px;
+                padding: 12px;
+            }
+            .prompt-input {
+                min-height: 100px;
+                font-size: 14px;
+            }
+            .auth-modal-content {
+                width: 95%;
+                padding: 20px;
+            }
+            /* 上传区域改为半屏选择器 */
+            .upload-area {
+                padding: 30px 20px;
+                border-radius: 16px;
+            }
+            .upload-icon {
+                font-size: 40px;
+            }
+            .upload-text {
+                font-size: 15px;
+            }
+        }
+        /* 触摸设备优化 — 最小点击区域 44x44px */
+        @media (hover: none) and (pointer: coarse) {
+            .panel-tab, .aspect-btn, .generate-btn, .action-btn,
+            .detail-card-btn, .detail-action-btn, .enhance-btn,
+            .auth-btn, .btn-tech, .auth-btn-header, .remove-btn,
+            .history-delete, .history-item, .profile-close,
+            .fab-download, .upload-area {
+                min-height: 44px;
+                min-width: 44px;
+            }
+        }
+        /* 抽屉遮罩 */
+        .drawer-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.35);
+            z-index: 899;
+        }
+        .drawer-overlay.active {
+            display: block;
+        }
+        /* 移动端抽屉 FAB 按钮 */
+        .drawer-fab {
+            display: none;
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 4px 16px rgba(102,126,234,0.4);
+            z-index: 898;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.2s;
+        }
+        .drawer-fab:active {
+            transform: scale(0.9);
+        }
+        @media (max-width: 768px) {
+            .drawer-fab {
+                display: flex;
+            }
+        }
+        /* 抽屉拖拽手柄 */
+        .drawer-handle {
+            display: none;
+            width: 36px;
+            height: 4px;
+            background: #d1d1d6;
+            border-radius: 2px;
+            margin: 8px auto 0;
+        }
+        @media (max-width: 768px) {
+            .drawer-handle {
+                display: block;
+            }
+        }
+        /* 详情页样式 */
+        .detail-form { display: flex; flex-direction: column; gap: 14px; }
+        .form-group { display: flex; flex-direction: column; gap: 6px; }
+        .form-label { font-size: 13px; color: #86868b; font-weight: 500; }
+        .form-input {
+            width: 100%; padding: 10px 14px;
+            border: 1.5px solid #d2d2d7; border-radius: 10px;
+            font-size: 14px; transition: border-color 0.2s; font-family: inherit;
+        }
+        .form-input:focus { outline: none; border-color: #f5576c; box-shadow: 0 0 0 3px rgba(245,87,108,0.12); }
+        .form-textarea { min-height: 80px; resize: vertical; line-height: 1.6; }
+        .form-hint { font-size: 11px; color: #aeaeb2; }
+        .detail-btn {
+            margin-top: 8px; padding: 14px;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white; border: none; border-radius: 12px;
+            font-size: 16px; font-weight: 500; cursor: pointer; transition: opacity 0.2s;
+        }
+        .detail-btn:hover { opacity: 0.9; transform: translateY(-2px); box-shadow: 0 4px 16px rgba(240,147,251,0.4); }
+        .detail-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        /* 详情页瀑布流 */
+        .detail-waterfall {
+            display: flex; flex-direction: column; gap: 20px;
+            width: 100%; max-width: 700px; padding: 20px;
+        }
+        .detail-card {
+            position: relative; border-radius: 16px; overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            background: white; transition: transform 0.2s;
+            animation: staggerFadeIn 0.5s ease-out both;
+        }
+        .detail-card:hover { transform: translateY(-2px); }
+        @keyframes staggerFadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .detail-card img {
+            width: 100%; display: block;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        .detail-card img:hover {
+            opacity: 0.85;
+        }
+        .detail-card-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 12px 16px; background: white;
+        }
+        .detail-card-title {
+            font-size: 14px; font-weight: 600; color: #1d1d1f;
+        }
+        .detail-card-prompt {
+            font-size: 12px; color: #86868b; padding: 0 16px 12px;
+            line-height: 1.5;
+        }
+        .detail-card-actions {
+            display: flex; gap: 8px;
+        }
+        .detail-card-btn {
+            padding: 6px 12px; border-radius: 6px;
+            font-size: 12px; cursor: pointer;
+            border: 1px solid #d2d2d7; background: white;
+            transition: all 0.2s;
+        }
+        .detail-card-btn:hover { border-color: #f5576c; color: #f5576c; }
+        .detail-card-btn.primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white; border: none;
+        }
+        .detail-card-btn.primary:hover { opacity: 0.9; }
+        .detail-progress {
+            display: flex; flex-direction: column; align-items: center; gap: 16px;
+        }
+        .detail-progress-bar {
+            width: 100%; max-width: 400px; height: 6px;
+            background: #e5e5e7; border-radius: 3px; overflow: hidden;
+        }
+        .detail-progress-fill {
+            height: 100%; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            border-radius: 3px; transition: width 0.3s;
+        }
+        .detail-progress-text { font-size: 14px; color: #86868b; }
+        .detail-card-loading {
+            display: flex; flex-direction: column; align-items: center;
+            justify-content: center; padding: 60px 20px;
+            background: #f5f5f7; border-radius: 16px; min-height: 300px;
+        }
+        .detail-card-loading .spinner {
+            width: 36px; height: 36px;
+            border: 3px solid #e5e5e7; border-top-color: #f5576c;
+            border-radius: 50%; animation: spin 0.8s linear infinite;
+        }
+        .loading-subtext {
+            font-size: 13px;
+            color: #a1a1a6;
+            margin-top: -8px;
+        }
+
+        .detail-card-loading .loading-text {
+            margin-top: 12px; font-size: 13px; color: #86868b;
+        }
+        .detail-actions {
+            display: flex; gap: 12px; margin-top: 20px;
+            justify-content: center; flex-wrap: wrap;
+        }
+        .detail-action-btn {
+            padding: 10px 20px; border-radius: 10px;
+            font-size: 14px; cursor: pointer;
+            border: 1.5px solid #d2d2d7; background: white;
+            transition: all 0.2s;
+        }
+        .detail-action-btn:hover { border-color: #f5576c; color: #f5576c; }
+        .detail-action-btn.primary {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white; border: none;
+        }
+        .detail-action-btn.primary:hover { opacity: 0.9; }
+        /* 登录/注册弹窗样式 */
+        .auth-modal {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        .auth-modal-content {
+            background: white;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 30px;
+            border-radius: 12px;
+            width: 400px;
+            max-width: 90%;
+            position: relative;
+        }
+        .auth-close {
+            position: absolute;
+            top: 10px; right: 15px;
+            font-size: 24px;
+            cursor: pointer;
+        }
+        .auth-tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #eee;
+        }
+        .auth-tab {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-size: 16px;
+            color: #666;
+        }
+        .auth-tab.active {
+            color: #667eea;
+            border-bottom: 2px solid #667eea;
+            margin-bottom: -2px;
+        }
+        .auth-btn {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        .auth-btn:hover {
+            opacity: 0.9;
+        }
+        .auth-error {
+            color: #ff3b30;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+        .auth-btn-header {
+            padding: 8px 20px;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 1.5px solid rgba(255,255,255,0.5);
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .auth-btn-header:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        .auth-user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: white;
+            font-size: 14px;
+        }
+        .auth-user-info span {
+            opacity: 0.9;
+        }
+
+        /* ===== 科技感风格 ===== */
+        :root {
+            --primary: #667eea;
+            --primary-dark: #764ba2;
+            --bg-dark: #1a1a2e;
+            --bg-card: rgba(255, 255, 255, 0.05);
+            --text-light: #ffffff;
+            --text-muted: #a0a0b0;
+            --border-color: rgba(255, 255, 255, 0.1);
+            --shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .glass {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+        }
+
+        .gradient-bg {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+        }
+
+        .form-input-tech {
+            width: 100%;
+            padding: 12px 16px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: white;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+        .form-input-tech::placeholder {
+            color: rgba(255, 255, 255, 0.4);
+        }
+        .form-input-tech:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+        }
+        .form-input-tech option {
+            background: #1a1a2e;
+            color: white;
+        }
+
+        .btn-tech {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .btn-tech:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .user-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+        .dropdown-menu {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 100%;
+            margin-top: 8px;
+            background: rgba(26, 26, 46, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 8px 0;
+            min-width: 160px;
+            z-index: 100;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        .dropdown-menu.show {
+            display: block;
+        }
+        .dropdown-item {
+            padding: 10px 16px;
+            color: white;
+            cursor: pointer;
+            transition: background 0.2s;
+            font-size: 14px;
+        }
+        .dropdown-item:hover {
+            background: rgba(102, 126, 234, 0.2);
+        }
+
+        /* 科技感弹窗 */
+        .auth-modal {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        .auth-modal-content {
+            background: linear-gradient(135deg, rgba(26, 26, 46, 0.95) 0%, rgba(22, 33, 62, 0.95) 100%);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            border-radius: 16px;
+            width: 420px;
+            max-width: 90%;
+            position: relative;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        .auth-close {
+            position: absolute;
+            top: 12px; right: 16px;
+            font-size: 24px;
+            cursor: pointer;
+            color: rgba(255, 255, 255, 0.6);
+            transition: color 0.2s;
+        }
+        .auth-close:hover {
+            color: white;
+        }
+        .auth-tabs {
+            display: flex;
+            margin-bottom: 24px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .auth-tab {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-size: 16px;
+            color: rgba(255, 255, 255, 0.5);
+            transition: all 0.3s;
+        }
+        .auth-tab.active {
+            color: #667eea;
+            border-bottom: 2px solid #667eea;
+        }
+        .auth-tab:hover {
+            color: rgba(255, 255, 255, 0.8);
+        }
+        .auth-form .form-group {
+            margin-bottom: 16px;
+        }
+        .auth-form label {
+            display: block;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 13px;
+            margin-bottom: 6px;
+        }
+        .auth-btn {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 8px;
+            transition: all 0.3s ease;
+        }
+        .auth-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        .auth-error {
+            color: #ff6b6b;
+            margin-top: 10px;
+            font-size: 13px;
+            text-align: center;
+        }
+        .auth-btn-header {
+            padding: 8px 20px;
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+            backdrop-filter: blur(10px);
+        }
+        .auth-btn-header:hover {
+            background: rgba(255, 255, 255, 0.25);
+            border-color: rgba(255, 255, 255, 0.5);
+        }
+
+        /* 个人信息弹窗 */
+        .profile-modal {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1001;
+        }
+        .profile-content {
+            background: linear-gradient(135deg, rgba(26, 26, 46, 0.95) 0%, rgba(22, 33, 62, 0.95) 100%);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            border-radius: 16px;
+            width: 380px;
+            max-width: 90%;
+            color: white;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        .profile-content h3 {
+            margin-bottom: 20px;
+            font-size: 18px;
+            text-align: center;
+        }
+        .profile-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .profile-row .label {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 14px;
+        }
+        .profile-row .value {
+            color: white;
+            font-size: 14px;
+        }
+        .profile-close {
+            margin-top: 20px;
+            width: 100%;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        .profile-close:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        /* ===== 全屏预览 ===== */
+        .fullscreen-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            animation: overlayFadeIn 0.25s ease-out;
+        }
+        .fullscreen-overlay.active {
+            display: flex;
+        }
+        @keyframes overlayFadeIn {
+            from { opacity: 0; }
+            to   { opacity: 1; }
+        }
+        .fullscreen-overlay img {
+            max-width: 92vw;
+            max-height: 85vh;
+            object-fit: contain;
+            border-radius: 12px;
+            box-shadow: 0 8px 48px rgba(0,0,0,0.4);
+            animation: scaleIn 0.3s ease-out;
+        }
+        .fullscreen-close {
+            position: absolute;
+            top: 20px;
+            right: 24px;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.15);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.3);
+            font-size: 22px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+        .fullscreen-close:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        .fullscreen-download {
+            position: absolute;
+            bottom: 24px;
+            right: 24px;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            box-shadow: 0 4px 16px rgba(102,126,234,0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.2s;
+        }
+        .fullscreen-download:hover {
+            transform: scale(1.1);
+        }
+        .fullscreen-hint {
+            position: absolute;
+            bottom: 28px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: rgba(255,255,255,0.5);
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div>
+            <h1>🎨 电商图片生成器</h1>
+            <div class="subtitle">Powered by gpt-image-2 | 材视 MaterialView</div>
+        </div>
+        <button id="authBtn" class="auth-btn-header" onclick="showAuthModal()">登录</button>
+    </div>
+
+    <!-- Toast 通知容器 -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <div class="container">
+        <!-- 左侧面板 -->
+        <div class="left-panel" id="leftPanel">
+                <div class="drawer-handle"></div>
+            <div class="panel-tabs">
+                <button class="panel-tab active" onclick="switchTab('generate')">生成图片</button>
+                <button class="panel-tab" onclick="switchTab('template')">模版生图</button>
+                <button class="panel-tab" onclick="switchTab('detail')">详情页</button>
+                <button class="panel-tab" onclick="switchTab('history')">历史记录</button>
+            </div>
+
+            <!-- 生成面板 -->
+            <div class="panel-content" id="tab-generate">
+                <div class="prompt-section">
+                    <!-- ① 提示词区 -->
+                    <div class="section-group">
+                        <div class="section-header">📝 提示词</div>
+                        <textarea class="prompt-input" id="promptInput" placeholder="例如：白色陶瓷花瓶，简约北欧风格，放在原木桌面上..."></textarea>
+                        <button class="enhance-btn" onclick="enhancePrompt()">✨ 智能增强提示词</button>
+                    </div>
+                    <div class="section-divider"></div>
+
+                    <!-- ② 参数区 -->
+                    <div class="section-group">
+                        <div class="section-header">⚙️ 生成参数</div>
+                        <div class="aspect-section">
+                            <div class="aspect-label">图片比例</div>
+                            <div class="aspect-options">
+                                <button class="aspect-btn active" data-ratio="1:1" onclick="selectAspect(this)">1:1</button>
+                                <button class="aspect-btn" data-ratio="3:4" onclick="selectAspect(this)">3:4</button>
+                                <button class="aspect-btn" data-ratio="4:3" onclick="selectAspect(this)">4:3</button>
+                                <button class="aspect-btn" data-ratio="16:9" onclick="selectAspect(this)">16:9</button>
+                                <button class="aspect-btn" data-ratio="9:16" onclick="selectAspect(this)">9:16</button>
+                            </div>
+                        </div>
+                        <div class="batch-section" style="margin-top: 14px;">
+                            <div class="aspect-label">批量生成数量</div>
+                            <div class="aspect-options">
+                                <button class="aspect-btn" data-count="1" onclick="selectBatchCount(this)">1张</button>
+                                <button class="aspect-btn active" data-count="2" onclick="selectBatchCount(this)">2张</button>
+                                <button class="aspect-btn" data-count="3" onclick="selectBatchCount(this)">3张</button>
+                                <button class="aspect-btn" data-count="4" onclick="selectBatchCount(this)">4张</button>
+                                <button class="aspect-btn" data-count="5" onclick="selectBatchCount(this)">5张</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="section-divider"></div>
+
+                    <!-- ③ 参考图区 -->
+                    <div class="section-group">
+                        <div class="section-header">🖼️ 参考图</div>
+                        <div class="upload-area" id="uploadArea" onclick="document.getElementById('fileInput').click()">
+                            <div class="upload-icon">📤</div>
+                            <div class="upload-text">点击或拖拽图片到此处上传</div>
+                            <div class="upload-hint">支持 JPG/PNG/WEBP/GIF，单张不超过 10MB，最多5张</div>
+                        </div>
+                        <input type="file" id="fileInput" class="upload-input" accept="image/*" multiple />
+                        <div class="uploaded-images" id="uploadedImages"></div>
+                        <div class="reference-label" style="margin-top: 14px;">🔗 或手动输入参考图 URL（每行一个）</div>
+                        <textarea class="reference-input" id="referenceInput" placeholder="https://example.com/reference-1.png&#10;https://example.com/reference-2.png"></textarea>
+                        <div class="reference-hint">提供参考图可让 AI 保持构图/风格/色调，实现精准重绘</div>
+                    </div>
+                    <div class="section-divider"></div>
+
+                    <!-- ④ 操作区 -->
+                    <div class="section-group">
+                        <button class="generate-btn btn-ripple" id="generateBtn" onclick="generateImage()">🚀 批量生成主图</button>
+                        <div id="errorMsg"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 历史面板 -->
+            <div class="panel-content" id="tab-history" style="display:none;">
+                <div class="history-list" id="historyList">
+                    <div class="empty-state">暂无历史记录</div>
+                </div>
+            </div>
+
+            <!-- 模版生图面板 -->
+            <div class="panel-content" id="tab-template" style="display:none;">
+                <div class="detail-form">
+                    <div class="form-group">
+                        <div class="form-label">📝 标签内容</div>
+                        <textarea class="form-input form-textarea" id="templateLabels" placeholder="例如：可开发票、耐高温高压/耐腐蚀、厂家直销量大优惠"></textarea>
+                        <div class="form-hint">用顿号或逗号分隔，AI 会合理设计标签样式</div>
+                    </div>
+                    <div class="form-group">
+                        <div class="form-label">🖼️ 参考图上传</div>
+                        <div class="upload-area" id="templateUploadArea" onclick="document.getElementById('templateFileInput').click()">
+                            <div class="upload-icon">📤</div>
+                            <div class="upload-text">点击或拖拽图片到此处上传</div>
+                            <div class="upload-hint">支持 JPG/PNG/WEBP/GIF，单张不超过 10MB</div>
+                        </div>
+                        <input type="file" id="templateFileInput" class="upload-input" accept="image/*" multiple />
+                        <div class="uploaded-images" id="templateUploadedImages"></div>
+                        
+                        <div class="reference-label" style="margin-top: 16px;">🔗 或手动输入参考图 URL（每行一个）</div>
+                        <textarea class="form-input form-textarea" id="templateReferenceInput" placeholder="第1行：配件图片 URL&#10;第2行：风格参考图片 URL（可选）"></textarea>
+                        <div class="form-hint">第1张为配件图片，第2张为风格参考（可选）</div>
+                    </div>
+                    <div class="form-group">
+                        <div class="form-label">🎨 生成模式</div>
+                        <div class="aspect-options">
+                            <button class="aspect-btn active" data-mode="no-ref" onclick="selectTemplateMode(this)">无风格参考</button>
+                            <button class="aspect-btn" data-mode="with-ref" onclick="selectTemplateMode(this)">有风格参考</button>
+                        </div>
+                    </div>
+                    <button class="detail-btn" id="templateBtn" onclick="generateTemplate()">🎯 生成主图</button>
+                    <div id="templateError"></div>
+                </div>
+            </div>
+
+            <!-- 详情页面板 -->
+            <div class="panel-content" id="tab-detail" style="display:none;">
+                <div class="detail-form">
+                    <div class="form-group">
+                        <div class="form-label">📦 商品名称 *</div>
+                        <input type="text" class="form-input" id="detailProductName" placeholder="例如：北欧简约陶瓷花瓶">
+                    </div>
+                    <div class="form-group">
+                        <div class="form-label">🏷️ 品类</div>
+                        <input type="text" class="form-input" id="detailCategory" placeholder="例如：家居装饰 / 数码配件 / 食品饮料">
+                    </div>
+                    <div class="form-group">
+                        <div class="form-label">⭐ 核心卖点</div>
+                        <textarea class="form-input form-textarea" id="detailSellingPoints" placeholder="例如：手工烧制、耐高温、简约设计、环保材质"></textarea>
+                        <div class="form-hint">用顿号或逗号分隔，AI 会分配到不同页面展示</div>
+                    </div>
+                    <div class="form-group">
+                        <div class="form-label">🧱 材质</div>
+                        <input type="text" class="form-input" id="detailMaterial" placeholder="例如：陶瓷 / 不锈钢 / 实木 / 纯棉">
+                    </div>
+                    <div class="form-group">
+                        <div class="form-label">📏 尺寸</div>
+                        <input type="text" class="form-input" id="detailSize" placeholder="例如：20cm×15cm / 长款">
+                    </div>
+                    <div class="form-group">
+                        <div class="form-label">🎨 风格</div>
+                        <input type="text" class="form-input" id="detailStyle" placeholder="例如：北欧简约 / 新中式 / 工业风">
+                    </div>
+                    <div class="form-group">
+                        <div class="form-label">🖼️ 参考图上传（可选，最多5张）</div>
+                        <div class="upload-area" id="detailUploadArea" onclick="document.getElementById('detailFileInput').click()">
+                            <div class="upload-icon">📤</div>
+                            <div class="upload-text">点击或拖拽图片到此处上传</div>
+                            <div class="upload-hint">支持 JPG/PNG/WEBP/GIF，单张不超过 10MB</div>
+                        </div>
+                        <input type="file" id="detailFileInput" class="upload-input" accept="image/*" multiple />
+                        <div class="uploaded-images" id="detailUploadedImages"></div>
+                        
+                        <div class="reference-label" style="margin-top: 16px;">🔗 或手动输入参考图 URL（每行一个）</div>
+                        <textarea class="form-input form-textarea" id="detailReferenceStyle" placeholder="https://example.com/reference-1.png&#10;https://example.com/reference-2.png"></textarea>
+                        <div class="form-hint">提供产品实拍图，AI 生成的详情页会更贴近真实产品</div>
+                    </div>
+                    <button class="detail-btn" id="detailBtn" onclick="generateDetail()">🎯 生成详情页</button>
+                    <div id="detailError"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 右侧展示区 -->
+        <div class="right-panel" id="rightPanel">
+            <div class="image-display" id="imageDisplay">
+                <div class="placeholder">
+                    <div class="placeholder-icon">🖼️</div>
+                    <div class="placeholder-text">输入商品描述，点击生成<br>AI 将为你创建电商主图</div>
+                </div>
+            </div>
+            <div class="detail-waterfall" id="detailWaterfall" style="display:none;"></div>
+        </div>
+    </div>
+
+    <!-- 登录/注册弹窗 -->
+    <div class="auth-modal" id="authModal" style="display:none;">
+        <div class="auth-modal-content">
+            <span class="auth-close" onclick="closeAuthModal()">&times;</span>
+            <div class="auth-tabs">
+                <button class="auth-tab active" onclick="switchAuthTab('login')">登录</button>
+                <button class="auth-tab" onclick="switchAuthTab('register')">注册</button>
+            </div>
+            <div class="auth-form" id="loginForm">
+                <div class="form-group">
+                    <label>用户名</label>
+                    <input type="text" id="loginUsername" placeholder="请输入用户名" class="form-input-tech" />
+                </div>
+                <div class="form-group">
+                    <label>密码</label>
+                    <input type="password" id="loginPassword" placeholder="请输入密码" class="form-input-tech" />
+                </div>
+                <button class="btn-tech" onclick="login()">登录</button>
+                <div class="auth-error" id="loginError"></div>
+            </div>
+            <div class="auth-form" id="registerForm" style="display:none;">
+                <div class="form-group">
+                    <label>用户名 *</label>
+                    <input type="text" id="registerUsername" placeholder="3-20 字符" class="form-input-tech" />
+                </div>
+                <div class="form-group">
+                    <label>昵称 *</label>
+                    <input type="text" id="registerNickname" placeholder="2-20 字符" class="form-input-tech" />
+                </div>
+                <div class="form-group">
+                    <label>密码 *</label>
+                    <input type="password" id="registerPassword" placeholder="6-50 字符" class="form-input-tech" />
+                </div>
+                <div class="form-group">
+                    <label>头像 (可选)</label>
+                    <input type="text" id="registerAvatar" placeholder="头像 URL" class="form-input-tech" />
+                </div>
+                <div class="form-group">
+                    <label>性别 (可选)</label>
+                    <select id="registerGender" class="form-input-tech">
+                        <option value="">请选择</option>
+                        <option value="male">男</option>
+                        <option value="female">女</option>
+                        <option value="other">其他</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>年龄 (可选)</label>
+                    <input type="number" id="registerAge" placeholder="1-120" class="form-input-tech" min="1" max="120" />
+                </div>
+                <button class="btn-tech" onclick="register()">注册</button>
+                <div class="auth-error" id="registerError"></div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- 全屏预览 -->
+    <div class="fullscreen-overlay" id="fullscreenOverlay">
+        <button class="fullscreen-close" onclick="closeFullscreen()">&times;</button>
+        <img id="fullscreenImg" src="" alt="全屏预览">
+        <button class="fullscreen-download" id="fullscreenDownload" onclick="downloadImage(document.getElementById('fullscreenImg').src)">💾</button>
+        <div class="fullscreen-hint">按 ESC 退出预览</div>
+    </div>
+
+    <!-- 移动端抽屉 FAB -->
+    <button class="drawer-fab" id="drawerFab" onclick="toggleDrawer()">⚙️</button>
+
+    <!-- 抽屉遮罩 -->
+    <div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
+    <script>
+        // 配置 - 使用后端 API 代理
+
+        // ========== 全屏预览 ==========
+        function openFullscreen(url) {
+            document.getElementById("fullscreenImg").src = url;
+            document.getElementById("fullscreenOverlay").classList.add("active");
+            document.body.style.overflow = "hidden";
+        }
+        function closeFullscreen() {
+            document.getElementById("fullscreenOverlay").classList.remove("active");
+            document.body.style.overflow = "";
+        }
+        document.addEventListener("keydown", function(e) {
+            if (e.key === "Escape") closeFullscreen();
+        });
+        document.getElementById("fullscreenOverlay").addEventListener("click", function(e) {
+            if (e.target === this) closeFullscreen();
+        });
+
+        // ========== 移动端抽屉 ==========
+        function toggleDrawer() {
+            var panel = document.querySelector(".left-panel");
+            var overlay = document.getElementById("drawerOverlay");
+            panel.classList.toggle("drawer-open");
+            overlay.classList.toggle("active");
+        }
+        function closeDrawer() {
+            document.querySelector(".left-panel").classList.remove("drawer-open");
+            document.getElementById("drawerOverlay").classList.remove("active");
+        }
+
+        // 抽屉滑动手势
+        (function() {
+            var startY = 0;
+            var currentY = 0;
+            var isDragging = false;
+            var panel = document.getElementById("leftPanel");
+            if (!panel) return;
+
+            panel.addEventListener("touchstart", function(e) {
+                var handle = panel.querySelector(".drawer-handle");
+                if (handle && e.target === handle) {
+                    startY = e.touches[0].clientY;
+                    isDragging = true;
+                }
+            }, { passive: true });
+
+            panel.addEventListener("touchmove", function(e) {
+                if (!isDragging) return;
+                currentY = e.touches[0].clientY;
+                var diff = currentY - startY;
+                if (diff > 0) {
+                    panel.style.transform = "translateY(" + diff + "px)";
+                }
+            }, { passive: true });
+
+            panel.addEventListener("touchend", function(e) {
+                if (!isDragging) return;
+                isDragging = false;
+                var diff = currentY - startY;
+                panel.style.transform = "";
+                if (diff > 100) {
+                    closeDrawer();
+                }
+                currentY = 0;
+                startY = 0;
+            });
+        })();
+        const API_BASE = '/app/product-image/api';
+        let currentAspectRatio = '1:1';
+        let currentTaskId = null;
+        let pollTimer = null;
+        let uploadedFiles = []; // 存储已上传的文件信息（主图 Tab）
+        let templateUploadedFiles = []; // 模版 Tab 独立上传数组
+        let batchCount = 2; // 默认批量生成2张
+
+        // ========== 1. Toast 通知系统 ==========
+        (function() {
+            // 注入 Toast 样式
+            const toastStyle = document.createElement('style');
+            toastStyle.textContent = `
+                .toast-container {
+                    position: fixed;
+                    top: 20px;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    z-index: 10000;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    gap: 8px;
+                    pointer-events: none;
+                }
+        /* Toast 图标样式 */
+        .toast-icon { font-size: 18px; margin-right: 8px; }
+        .toast-message { flex: 1; }
+        .toast {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 16px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            font-size: 14px;
+            color: #1d1d1f;
+            animation: toast-in 0.3s ease-out;
+            max-width: 320px;
+            margin-bottom: 8px;
+        }
+        .toast-success { border-left: 4px solid #34c759; }
+        .toast-error { border-left: 4px solid #ff3b30; }
+        .toast-info { border-left: 4px solid #007aff; }
+        .toast-warning { border-left: 4px solid #ff9500; }
+        @keyframes toast-in {
+            from { opacity: 0; transform: translateY(-20px) scale(0.9); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .toast-out {
+            opacity: 0;
+            transform: translateY(-20px) scale(0.9);
+            transition: all 0.3s ease-out;
+        }
+
+                .toast {
+                    padding: 12px 24px;
+                    border-radius: 10px;
+                    color: white;
+                    font-size: 14px;
+                    font-weight: 500;
+                    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+                    animation: toastIn 0.3s ease-out forwards;
+                    pointer-events: auto;
+                    max-width: 90vw;
+                    text-align: center;
+                    white-space: nowrap;
+                }
+                .toast.toast-out {
+                    animation: toastOut 0.3s ease-in forwards;
+                }
+                .toast-success { background: linear-gradient(135deg, #43a047 0%, #66bb6a 100%); }
+                .toast-error { background: linear-gradient(135deg, #e53935 0%, #ef5350 100%); }
+                .toast-info { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+                .toast-warning { background: linear-gradient(135deg, #fb8c00 0%, #ffa726 100%); }
+                @keyframes toastIn {
+                    from { opacity: 0; transform: translateY(-20px); }
+                    to { opacity: 1; transform: translateY(0); }
+                }
+                @keyframes toastOut {
+                    from { opacity: 1; transform: translateY(0); }
+                    to { opacity: 0; transform: translateY(-20px); }
+                }
+                .batch-card.dragging {
+                    opacity: 0.5;
+                    transform: scale(0.95);
+                }
+                .batch-card.drag-over {
+                    outline: 2px dashed #667eea;
+                    outline-offset: -2px;
+                }
+            `;
+            document.head.appendChild(toastStyle);
+
+            // 创建 toast 容器
+            const container = document.createElement('div');
+            container.className = 'toast-container';
+            container.id = 'toastContainer';
+            document.body.appendChild(container);
+        })();
+
+        let toastQueue = [];
+
+        function showToast(message, type = 'info', duration = 3000) {
+            const icons = { success: '✅', error: '❌', info: 'ℹ️', warning: '⚠️' };
+            const icon = icons[type] || icons.info;
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = 'toast toast-' + type;
+            toast.innerHTML = `<span class="toast-icon">${icon}</span><span class="toast-message">${message}</span>`;
+            container.appendChild(toast);
+
+            // 自动移除
+            setTimeout(function() {
+                toast.classList.add('toast-out');
+                setTimeout(function() {
+                    if (toast.parentNode) toast.parentNode.removeChild(toast);
+                }, 300);
+            }, duration);
+        }
+
+        // 覆盖原有的 showError，使用 toast
+        const originalShowError = showError;
+        function showError(msg) {
+            showToast(msg, 'error');
+            // 保留内联错误显示向后兼容
+            document.getElementById('errorMsg').innerHTML = '<div class="error-msg">' + msg + '</div>';
+        }
+
+        function showTemplateError(msg) {
+            if (msg) showToast(msg, 'error');
+            document.getElementById('templateError').innerHTML = msg ? '<div class="error-msg">' + msg + '</div>' : '';
+        }
+
+        function showDetailError(msg) {
+            if (msg) showToast(msg, 'error');
+            document.getElementById('detailError').innerHTML = msg ? '<div class="error-msg">' + msg + '</div>' : '';
+        }
+
+        // ========== Token 管理 ==========
+        const AuthService = {
+            getToken() {
+                return localStorage.getItem('product-image-token');
+            },
+            setToken(token) {
+                localStorage.setItem('product-image-token', token);
+            },
+            removeToken() {
+                localStorage.removeItem('product-image-token');
+            },
+            isLoggedIn() {
+                return !!this.getToken();
+            },
+            async fetch(url, options = {}) {
+                const token = this.getToken();
+                const headers = options.headers || {};
+                if (token) {
+                    headers['Authorization'] = `Bearer ${token}`;
+                }
+                const response = await fetch(url, { ...options, headers });
+                if (response.status === 401) {
+                    this.removeToken();
+                    updateAuthUI();
+                    showAuthModal();
+                }
+                return response;
+            }
+        };
+
+        async function login() {
+            const username = document.getElementById('loginUsername').value.trim();
+            const password = document.getElementById('loginPassword').value;
+            const errorEl = document.getElementById('loginError');
+            if (!username || !password) { errorEl.textContent = '请输入用户名和密码'; return; }
+            try {
+                const res = await fetch('/app/product-image/api/auth/login', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                const data = await res.json();
+                if (data.code === 200) { AuthService.setToken(data.data.token); closeAuthModal(); updateAuthUI(); }
+                else { errorEl.textContent = data.message || '登录失败'; }
+            } catch (err) { errorEl.textContent = '网络错误，请重试'; }
+        }
+
+        async function register() {
+            const username = document.getElementById('registerUsername').value.trim();
+            const nickname = document.getElementById('registerNickname').value.trim();
+            const password = document.getElementById('registerPassword').value;
+            const avatar = document.getElementById('registerAvatar').value.trim();
+            const gender = document.getElementById('registerGender').value;
+            const age = document.getElementById('registerAge').value;
+            const errorEl = document.getElementById('registerError');
+
+            if (!username || !nickname || !password) {
+                errorEl.textContent = '请填写必填项（用户名、昵称、密码）';
+                return;
+            }
+            if (username.length < 3 || username.length > 20) {
+                errorEl.textContent = '用户名长度为 3-20 个字符';
+                return;
+            }
+            if (nickname.length < 2 || nickname.length > 20) {
+                errorEl.textContent = '昵称长度为 2-20 个字符';
+                return;
+            }
+            if (password.length < 6 || password.length > 50) {
+                errorEl.textContent = '密码长度为 6-50 个字符';
+                return;
+            }
+            if (age && (parseInt(age) < 1 || parseInt(age) > 120)) {
+                errorEl.textContent = '年龄必须在 1-120 之间';
+                return;
+            }
+
+            try {
+                const res = await fetch('/app/product-image/api/auth/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        username,
+                        nickname,
+                        password,
+                        avatar_url: avatar || undefined,
+                        gender: gender || undefined,
+                        age: age ? parseInt(age) : undefined
+                    })
+                });
+                const data = await res.json();
+                if (data.code === 200) {
+                    // 自动登录
+                    const loginRes = await fetch('/app/product-image/api/auth/login', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ username, password })
+                    });
+                    const loginData = await loginRes.json();
+                    if (loginData.code === 200) {
+                        AuthService.setToken(loginData.data.token);
+                        closeAuthModal();
+                        updateAuthUI();
+                    }
+                } else {
+                    errorEl.textContent = data.message || '注册失败';
+                }
+            } catch (err) {
+                errorEl.textContent = '网络错误，请重试';
+            }
+        }
+
+        async function logout() {
+            try {
+                await AuthService.fetch('/app/product-image/api/auth/logout', { method: 'POST' });
+            } catch (e) {}
+            AuthService.removeToken();
+            updateAuthUI();
+        }
+
+        function updateAuthUI() {
+            const authBtn = document.getElementById('authBtn');
+            if (!authBtn) return;
+            if (AuthService.isLoggedIn()) {
+                fetch('/app/product-image/api/auth/me', {
+                    headers: { 'Authorization': 'Bearer ' + AuthService.getToken() }
+                })
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    if (data.code === 200) {
+                        var displayName = data.data.nickname || data.data.username;
+                        authBtn.innerHTML = '<div class="user-dropdown">' +
+                            '<span id="userDisplay" style="cursor:pointer;">\ud83d\udc64 ' + displayName + '</span>' +
+                            '<div class="dropdown-menu" id="userDropdown">' +
+                            '<div class="dropdown-item" onclick="showProfile()">\ud83d\udc64 \u4e2a\u4eba\u4fe1\u606f</div>' +
+                            '<div class="dropdown-item" onclick="logout()">\ud83e\uddfc \u9000\u51fa\u767b\u5f55</div>' +
+                            '</div></div>';
+                        document.getElementById('userDisplay').onclick = function(e) {
+                            e.stopPropagation();
+                            document.getElementById('userDropdown').classList.toggle('show');
+                        };
+                        document.addEventListener('click', function() {
+                            var dd = document.getElementById('userDropdown');
+                            if (dd) dd.classList.remove('show');
+                        });
+                    } else {
+                        authBtn.textContent = '\u767b\u5f55';
+                        authBtn.onclick = showAuthModal;
+                    }
+                })
+                .catch(function() {
+                    authBtn.textContent = '\u767b\u5f55';
+                    authBtn.onclick = showAuthModal;
+                });
+            } else {
+                authBtn.textContent = '\u767b\u5f55';
+                authBtn.onclick = showAuthModal;
+            }
+        }
+
+        function showProfile() {
+            fetch('/app/product-image/api/auth/me', {
+                headers: { 'Authorization': 'Bearer ' + AuthService.getToken() }
+            })
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                if (data.code === 200) {
+                    var u = data.data;
+                    var genderMap = { male: '\u7537', female: '\u5973', other: '\u5176\u4ed6' };
+                    var modal = document.createElement('div');
+                    modal.className = 'profile-modal';
+                    modal.id = 'profileModal';
+                    var createdAt = u.createdAt ? new Date(u.createdAt).toLocaleString('zh-CN') : '-';
+                    modal.innerHTML = '<div class="profile-content">' +
+                        '<h3>\ud83d\udc64 \u4e2a\u4eba\u4fe1\u606f</h3>' +
+                        '<div class="profile-row"><span class="label">\u7528\u6237\u540d</span><span class="value">' + (u.username || '-') + '</span></div>' +
+                        '<div class="profile-row"><span class="label">\u6635\u79f0</span><span class="value">' + (u.nickname || '-') + '</span></div>' +
+                        '<div class="profile-row"><span class="label">\u6027\u522b</span><span class="value">' + (genderMap[u.gender] || '-') + '</span></div>' +
+                        '<div class="profile-row"><span class="label">\u5e74\u9f84</span><span class="value">' + (u.age || '-') + '</span></div>' +
+                        '<div class="profile-row"><span class="label">\u6ce8\u518c\u65f6\u95f4</span><span class="value">' + createdAt + '</span></div>' +
+                        '<button class="profile-close" onclick="closeProfile()">\u5173\u95ed</button>' +
+                        '</div>';
+                    document.body.appendChild(modal);
+                    modal.addEventListener('click', function(e) { if (e.target === modal) closeProfile(); });
+                }
+            })
+            .catch(function() { alert('\u83b7\u53d6\u7528\u6237\u4fe1\u606f\u5931\u8d25'); });
+        }
+
+        function closeProfile() {
+            var modal = document.getElementById('profileModal');
+            if (modal) modal.remove();
+        }
+
+        // 检查登录态
+        function checkAuth() {
+            if (!AuthService.isLoggedIn()) {
+                showAuthModal();
+                return false;
+            }
+            return true;
+        }
+
+        // 页面加载时检查登录态
+        window.addEventListener('DOMContentLoaded', () => {
+            updateAuthUI();
+            // 如果未登录，不显示拦截提示，让用户正常使用
+            // 登录后可使用所有功能，未登录时部分功能受限
+        });
+
+        function showAuthModal() { document.getElementById('authModal').style.display = 'flex'; }
+        function closeAuthModal() { document.getElementById('authModal').style.display = 'none'; }
+        function switchAuthTab(tab) {
+            document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+            document.getElementById('loginForm').style.display = tab === 'login' ? 'block' : 'none';
+            document.getElementById('registerForm').style.display = tab === 'register' ? 'block' : 'none';
+        }
+
+        // ========== 3. 自动保存草稿 ==========
+        const DRAFT_KEY = 'product-image-draft';
+        let draftTimer = null;
+
+        function saveDraft() {
+            const prompt = document.getElementById('promptInput').value;
+            const aspect = currentAspectRatio;
+            const refInput = document.getElementById('referenceInput').value;
+            localStorage.setItem(DRAFT_KEY, JSON.stringify({
+                prompt: prompt,
+                aspect: aspect,
+                refInput: refInput,
+                time: Date.now()
+            }));
+        }
+
+        function loadDraft() {
+            try {
+                const raw = localStorage.getItem(DRAFT_KEY);
+                if (!raw) return;
+                const draft = JSON.parse(raw);
+                // 超过 24 小时的草稿不恢复
+                if (Date.now() - draft.time > 86400000) {
+                    localStorage.removeItem(DRAFT_KEY);
+                    return;
+                }
+                if (draft.prompt) {
+                    document.getElementById('promptInput').value = draft.prompt;
+                }
+                if (draft.refInput) {
+                    document.getElementById('referenceInput').value = draft.refInput;
+                }
+                if (draft.aspect) {
+                    currentAspectRatio = draft.aspect;
+                    document.querySelectorAll('.aspect-btn').forEach(function(btn) {
+                        btn.classList.remove('active');
+                        if (btn.dataset.ratio === draft.aspect) {
+                            btn.classList.add('active');
+                        }
+                    });
+                }
+            } catch (e) {
+                // 忽略草稿加载错误
+            }
+        }
+
+        function clearDraft() {
+            localStorage.removeItem(DRAFT_KEY);
+        }
+
+        // ========== 6. Tab 切换记忆滚动位置 ==========
+        const tabScrollPositions = {};
+
+        // ========== 初始化 ==========
+        document.addEventListener('DOMContentLoaded', () => {
+            loadHistory();
+            setupUpload();
+            setupDetailUpload();
+            setupTemplateUpload();
+            updateAuthUI();
+
+            // 恢复草稿
+            loadDraft();
+
+            // 提示词输入自动保存草稿（2秒 debounce）
+            var promptInput = document.getElementById('promptInput');
+            var refInput = document.getElementById('referenceInput');
+
+            function onDraftChange() {
+                clearTimeout(draftTimer);
+                draftTimer = setTimeout(saveDraft, 2000);
+            }
+
+            promptInput.addEventListener('input', onDraftChange);
+            refInput.addEventListener('input', onDraftChange);
+
+            // 监听比例切换也保存草稿
+            var origSelectAspect = selectAspect;
+            selectAspect = function(btn) {
+                origSelectAspect(btn);
+                saveDraft();
+            };
+
+            // ========== 2. 键盘快捷键 ==========
+            document.addEventListener('keydown', function(e) {
+                const key = e.key;
+                const ctrlOrCmd = e.ctrlKey || e.metaKey;
+
+                // Ctrl/Cmd + Enter：触发生成
+                if (ctrlOrCmd && key === 'Enter') {
+                    e.preventDefault();
+                    generateImage();
+                    return;
+                }
+
+                // Ctrl/Cmd + E：触发提示词增强
+                if (ctrlOrCmd && key.toLowerCase() === 'e') {
+                    e.preventDefault();
+                    enhancePrompt();
+                    return;
+                }
+
+                // ESC：关闭弹窗/全屏预览
+                if (key === 'Escape') {
+                    const authModal = document.getElementById('authModal');
+                    if (authModal && authModal.style.display === 'flex') {
+                        closeAuthModal();
+                        return;
+                    }
+                    const profileModal = document.getElementById('profileModal');
+                    if (profileModal) {
+                        closeProfile();
+                        return;
+                    }
+                }
+
+                // Alt+1~4：快速切换四个 Tab
+                if (e.altKey && !e.ctrlKey && !e.shiftKey) {
+                    const tabMap = { '1': 'generate', '2': 'template', '3': 'detail', '4': 'history' };
+                    if (tabMap[key]) {
+                        e.preventDefault();
+                        switchTab(tabMap[key]);
+                        return;
+                    }
+                }
+            });
+        });
+
+        // Tab 切换
+        function switchTab(tab) {
+            // 保存当前 Tab 的滚动位置
+            const currentTabEl = document.querySelector('.panel-content[style*="block"], .panel-tab.active');
+            const activeContent = document.querySelector('.panel-content');
+            if (activeContent && activeContent.style.display !== 'none') {
+                const activeId = activeContent.id;
+                tabScrollPositions[activeId] = activeContent.scrollTop;
+            }
+
+            document.querySelectorAll('.panel-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.panel-content').forEach(c => c.style.display = 'none');
+            const targetContent = document.getElementById('tab-' + tab);
+            targetContent.style.display = 'block';
+            event.target.classList.add('active');
+
+            // 恢复目标 Tab 的滚动位置
+            const targetId = 'tab-' + tab;
+            if (tabScrollPositions[targetId] !== undefined) {
+                targetContent.scrollTop = tabScrollPositions[targetId];
+            } else {
+                targetContent.scrollTop = 0;
+            }
+
+            if (tab === 'history') loadHistory();
+            if (tab === 'generate') {
+                document.getElementById('imageDisplay').style.display = '';
+                document.getElementById('detailWaterfall').style.display = 'none';
+            }
+            if (tab === 'detail') {
+                document.getElementById('imageDisplay').style.display = 'none';
+                document.getElementById('detailWaterfall').style.display = '';
+            }
+        }
+
+        // 选择比例
+        // 选择批量生成数量
+        function selectBatchCount(btn) {
+            document.querySelectorAll(".aspect-btn").forEach(b => b.classList.remove("active"));
+            btn.classList.add("active");
+            batchCount = parseInt(btn.dataset.count);
+        }
+
+        function selectAspect(btn) {
+            document.querySelectorAll('.aspect-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            currentAspectRatio = btn.dataset.ratio;
+        }
+
+        // 提示词增强 — 调用千问 API
+        async function enhancePrompt() {
+            const input = document.getElementById('promptInput');
+            let text = input.value.trim();
+            if (!text) {
+                showError('请先输入商品描述');
+                return;
+            }
+
+            const btn = document.querySelector('.enhance-btn');
+            btn.disabled = true;
+            btn.textContent = '⏳ AI 增强中...';
+            clearError();
+
+            try {
+                const response = await AuthService.fetch(API_BASE + '/enhance', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ prompt: text })
+                });
+
+                const data = await response.json();
+
+                if (data.code === 200 && data.data?.enhanced) {
+                    input.value = data.data.enhanced;
+                    input.focus();
+                } else {
+                    showError(data.error || '增强失败，请重试');
+                }
+            } catch (err) {
+                showError(`增强失败：${err.message}`);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '✨ 智能增强提示词';
+            }
+        }
+
+        // ========== 图片上传功能 ==========
+
+        function setupUpload() {
+            const fileInput = document.getElementById('fileInput');
+            const uploadArea = document.getElementById('uploadArea');
+
+            // 文件选择
+            fileInput.addEventListener('change', (e) => {
+                handleFiles(e.target.files);
+            });
+
+            // 拖拽上传
+            uploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadArea.classList.add('dragover');
+            });
+
+            uploadArea.addEventListener('dragleave', () => {
+                uploadArea.classList.remove('dragover');
+            });
+
+            uploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadArea.classList.remove('dragover');
+                handleFiles(e.dataTransfer.files);
+            });
+        }
+
+        async function handleFiles(files) {
+            for (const file of files) {
+                if (uploadedFiles.length >= 5) {
+                    showError('最多上传5张参考图');
+                    break;
+                }
+
+                // 验证格式
+                const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
+                if (!allowedTypes.includes(file.type)) {
+                    showError(`不支持的文件格式：${file.name}`);
+                    continue;
+                }
+
+                // 验证大小
+                if (file.size > 10 * 1024 * 1024) {
+                    showError(`文件过大（最大 10MB）：${file.name}`);
+                    continue;
+                }
+
+                try {
+                    const formData = new FormData();
+                    formData.append('image', file);
+
+                    const response = await AuthService.fetch(API_BASE + '/upload', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    const data = await response.json();
+                    if (data.code === 200) {
+                        uploadedFiles.push(data.data);
+                        renderAllUploadedFiles(); // 同步更新所有上传列表
+                    } else {
+                        showError(`上传失败：${file.name} - ${data.error}`);
+                    }
+                } catch (err) {
+                    showError(`上传失败：${file.name} - ${err.message}`);
+                }
+            }
+        }
+
+        // 模版 Tab 独立上传处理
+        async function handleTemplateFiles(files) {
+            for (const file of files) {
+                if (templateUploadedFiles.length >= 5) {
+                    showTemplateError('最多上传5张参考图');
+                    break;
+                }
+
+                // 验证格式
+                const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
+                if (!allowedTypes.includes(file.type)) {
+                    showTemplateError(`不支持的文件格式：${file.name}`);
+                    continue;
+                }
+
+                // 验证大小
+                if (file.size > 10 * 1024 * 1024) {
+                    showTemplateError(`文件过大（最大 10MB）：${file.name}`);
+                    continue;
+                }
+
+                try {
+                    const formData = new FormData();
+                    formData.append('image', file);
+
+                    const response = await AuthService.fetch(API_BASE + '/upload', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    const data = await response.json();
+                    if (data.code === 200) {
+                        templateUploadedFiles.push(data.data);
+                        renderTemplateUploadedFiles();
+                    } else {
+                        showTemplateError(`上传失败：${file.name} - ${data.error}`);
+                    }
+                } catch (err) {
+                    showTemplateError(`上传失败：${file.name} - ${err.message}`);
+                }
+            }
+        }
+
+        function renderUploadedFiles() {
+            const container = document.getElementById('uploadedImages');
+            container.innerHTML = uploadedFiles.map((file, index) => `
+                <div class="uploaded-item">
+                    <img src="${file.url}" alt="${file.filename}">
+                    <div class="file-info">
+                        <div class="file-name">${file.filename}</div>
+                        <div class="file-url">${(file.size / 1024).toFixed(1)} KB</div>
+                    </div>
+                    <span class="remove-btn" onclick="removeFile(${index})">✕</span>
+                </div>
+            `).join('');
+        }
+
+        // 渲染详情页上传文件列表
+        function renderDetailUploadedFiles() {
+            const container = document.getElementById('detailUploadedImages');
+            if (!container) return;
+            container.innerHTML = uploadedFiles.map((file, index) => `
+                <div class="uploaded-item">
+                    <img src="${file.url}" alt="${file.filename}">
+                    <div class="file-info">
+                        <div class="file-name">${file.filename}</div>
+                        <div class="file-url">${(file.size / 1024).toFixed(1)} KB</div>
+                    </div>
+                    <span class="remove-btn" onclick="removeFile(${index})">✕</span>
+                </div>
+            `).join('');
+        }
+
+        function removeFile(index) {
+            uploadedFiles.splice(index, 1);
+            renderUploadedFiles();
+            renderDetailUploadedFiles(); // 同步更新详情页上传列表
+            renderTemplateUploadedFiles(); // 同步更新模版上传列表
+        }
+
+        // 详情页上传 - 复用 uploadedFiles 数组
+        function setupDetailUpload() {
+            const fileInput = document.getElementById('detailFileInput');
+            const uploadArea = document.getElementById('detailUploadArea');
+
+            fileInput.addEventListener('change', (e) => {
+                handleFiles(e.target.files);
+            });
+
+            uploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadArea.classList.add('dragover');
+            });
+
+            uploadArea.addEventListener('dragleave', () => {
+                uploadArea.classList.remove('dragover');
+            });
+
+            uploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadArea.classList.remove('dragover');
+                handleFiles(e.dataTransfer.files);
+            });
+        }
+
+        // 模版上传 - 独立数组
+        function setupTemplateUpload() {
+            const fileInput = document.getElementById('templateFileInput');
+            const uploadArea = document.getElementById('templateUploadArea');
+
+            fileInput.addEventListener('change', (e) => {
+                handleTemplateFiles(e.target.files);
+            });
+
+            uploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadArea.classList.add('dragover');
+            });
+
+            uploadArea.addEventListener('dragleave', () => {
+                uploadArea.classList.remove('dragover');
+            });
+
+            uploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadArea.classList.remove('dragover');
+                handleTemplateFiles(e.dataTransfer.files);
+            });
+        }
+
+        // 渲染模版上传文件列表
+        function renderTemplateUploadedFiles() {
+            const container = document.getElementById('templateUploadedImages');
+            if (!container) return;
+            container.innerHTML = templateUploadedFiles.map((file, index) => `
+                <div class="uploaded-item">
+                    <img src="${file.url}" alt="${file.filename}">
+                    <div class="file-info">
+                        <div class="file-name">${file.filename}</div>
+                        <div class="file-url">${(file.size / 1024).toFixed(1)} KB</div>
+                    </div>
+                    <span class="remove-btn" onclick="removeFile(${index})">✕</span>
+                </div>
+            `).join('');
+        }
+        
+        // 删除模版上传文件
+        function removeTemplateFile(index) {
+            templateUploadedFiles.splice(index, 1);
+            renderTemplateUploadedFiles();
+        }
+
+        // 覆盖原有 renderUploadedFiles，同步更新模版列表
+        const originalRenderUploadedFiles = renderUploadedFiles;
+        renderUploadedFiles = function() {
+            originalRenderUploadedFiles();
+            renderDetailUploadedFiles();
+            renderTemplateUploadedFiles();
+        };
+
+        // 同步更新所有上传列表（主图、详情页、模版）
+        function renderAllUploadedFiles() {
+            renderUploadedFiles();
+            renderDetailUploadedFiles();
+            renderTemplateUploadedFiles();
+        }
+
+        // 选择模版模式
+        function selectTemplateMode(btn) {
+            document.querySelectorAll('.aspect-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+        }
+
+        // 模版生图
+        async function generateTemplate() {
+            // 检查登录态
+            if (!checkAuth()) return;
+            const labels = document.getElementById('templateLabels').value.trim();
+            if (!labels) {
+                showTemplateError('请输入标签内容');
+                return;
+            }
+
+            const modeBtn = document.querySelector('.aspect-btn.active');
+            const mode = modeBtn ? modeBtn.dataset.mode : 'no-ref';
+
+            // 收集参考图 URL
+            let templateReferenceImages = [];
+            templateUploadedFiles.forEach(f => templateReferenceImages.push(f.url));
+            const templateRefInput = document.getElementById('templateReferenceInput').value.trim();
+            const manualTemplateUrls = templateRefInput.split('\n')
+                .map(u => u.trim())
+                .filter(u => u.length > 0);
+            templateReferenceImages = templateReferenceImages.concat(manualTemplateUrls);
+
+            if (templateReferenceImages.length === 0) {
+                showTemplateError('请上传至少1张参考图');
+                return;
+            }
+
+            const btn = document.getElementById('templateBtn');
+            btn.disabled = true;
+            btn.textContent = '⏳ 生成中...';
+            showTemplateError('');
+
+            const display = document.getElementById('imageDisplay');
+            // 生成成功提示
+            showToast(`🎉 批量生成完成！共 ${imageUrls.length} 张图片`, 'success', 2500);
+
+            // 滚动到结果区域
+            setTimeout(() => {
+                display.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 100);
+
+            
+            display.innerHTML = `
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <div class="loading-text">AI 正在生成模版主图...</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill"></div>
+                    </div>
+                </div>
+            `;
+
+            try {
+                // 构建提示词（直接使用用户提供的格式）
+                let prompt;
+                if (mode === 'with-ref' && templateReferenceImages.length >= 2) {
+                    prompt = `请帮我基于这个第1张配件图片做一个商品主图，并打上这些标签：${labels}，合理的设计标签，使其符合淘宝商品详情页主图的风格，主图不要带边框。整体图片风格参考第2张商品主图。`;
+                } else {
+                    prompt = `请帮我基于这个配件图片做一个商品主图，并打上这些标签：${labels}，合理的设计标签，使其符合淘宝商品详情页主图的风格，主图不要带边框。`;
+                }
+
+                // 提交生成任务
+                const genResponse = await AuthService.fetch(API_BASE + '/generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        prompt: prompt,
+                        aspect_ratio: '1:1',
+                        reference_images: templateReferenceImages.length > 0 ? templateReferenceImages : undefined
+                    })
+                });
+
+                const genData = await genResponse.json();
+
+                let imageUrl;
+                if (genData.data?.task_id) {
+                    imageUrl = await pollTask(genData.data.task_id);
+                } else if (genData.output?.image_url) {
+                    imageUrl = genData.output.image_url;
+                } else {
+                    throw new Error(genData.code !== 200 && genData.message ? genData.message : '生成失败：API 响应异常');
+                }
+
+                // 显示结果
+                showImage(imageUrl, prompt);
+                saveToHistory(prompt, imageUrl, templateReferenceImages);
+                
+                showToast("💾 草稿已自动保存", "info", 1500);
+                clearDraft();
+
+            } catch (err) {
+                showTemplateError('生成失败：' + err.message);
+                resetDisplay();
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '🎯 生成主图';
+            }
+        }
+
+
+        // ========== 主图生成 ==========
+
+        async function generateImage() {
+            console.log("[generateImage] 开始执行，prompt:", document.getElementById("promptInput")?.value);
+            // 检查登录态
+            if (!checkAuth()) return;
+            const input = document.getElementById('promptInput');
+            const prompt = input.value.trim();
+
+            if (!prompt) {
+                showError('请输入商品描述');
+                return;
+            }
+
+            const btn = document.getElementById('generateBtn');
+            btn.disabled = true;
+            btn.textContent = `⏳ 生成中 0/${batchCount}...`;
+            clearError();
+
+            // 显示加载状态
+            const display = document.getElementById('imageDisplay');
+            display.innerHTML = `
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <div class="loading-text">🎨 AI 正在绘制商品主图</div>
+                    <div class="loading-subtext">通常需要 30-60 秒，请耐心等待</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="batchProgress"></div>
+                    </div>
+                    <div class="loading-text" id="batchCountText">0 / ${batchCount}</div>
+                </div>
+            `;
+
+            // 滚动到结果区域
+            setTimeout(() => {
+                display.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 100);
+
+            try {
+                // 收集参考图 URL
+                let referenceImages = [];
+                uploadedFiles.forEach(f => referenceImages.push(f.url));
+                const refInput = document.getElementById('referenceInput');
+                const manualUrls = refInput.value.trim().split('\n')
+                    .map(u => u.trim())
+                    .filter(u => u.length > 0);
+                referenceImages = referenceImages.concat(manualUrls);
+
+                // 批量生成
+                const imageUrls = [];
+                for (let i = 0; i < batchCount; i++) {
+                    btn.textContent = `⏳ 生成中 ${i + 1}/${batchCount}...`;
+                    
+                    const response = await AuthService.fetch(API_BASE + '/generate', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            prompt: prompt,
+                            aspect_ratio: currentAspectRatio,
+                            reference_images: referenceImages.length > 0 ? referenceImages : undefined
+                        })
+                    });
+
+                    const data = await response.json();
+
+                    let imageUrl;
+                    if (data.data?.task_id) {
+                        imageUrl = await pollTask(data.data.task_id);
+                    } else if (data.output?.image_url) {
+                        imageUrl = data.output.image_url;
+                    } else {
+                        throw new Error(data.code !== 200 && data.message ? data.message : `第${i + 1}张生成失败：API 响应异常`);
+                    }
+
+                    imageUrls.push(imageUrl);
+
+                    // 更新进度
+                    const progress = document.getElementById('batchProgress');
+                    const countText = document.getElementById('batchCountText');
+                    if (progress) progress.style.width = `${((i + 1) / batchCount) * 100}%`;
+                    const percent = Math.round(((i + 1) / batchCount) * 100);
+                    showToast(`✅ 第${i + 1}/${batchCount} 张生成成功 (${percent}%)`, 'success', 1500);
+                    if (countText) countText.textContent = `${i + 1} / ${batchCount}`;
+                }
+
+                // 显示所有图片
+                showBatchImages(imageUrls, prompt, referenceImages);
+
+                // 生成成功，清除草稿
+                
+                showToast("💾 草稿已自动保存", "info", 1500);
+                clearDraft();
+
+            } catch (err) {
+                const errorMsg = err.message || '未知错误';
+                showError(`生成失败：${errorMsg}\n\n💡 提示：检查网络后重试，或联系管理员`);
+                resetDisplay();
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '🚀 批量生成主图';
+            }
+        }
+
+        function showBatchImages(imageUrls, prompt, referenceImages) {
+            const display = document.getElementById('imageDisplay');
+            const cards = imageUrls.map((url, i) => `
+                <div class="batch-card" draggable="true" data-index="${i}">
+                    <img src="${url}" alt="主图 ${i + 1}">
+                    <div class="batch-card-actions">
+                        <button class="action-btn primary" onclick="downloadImage('${url}')">💾 下载</button>
+                    </div>
+                </div>
+            `).join('');
+
+            // 生成成功提示
+            showToast(`🎉 批量生成完成！共 ${imageUrls.length} 张图片`, 'success', 2500);
+
+            // 滚动到结果区域
+            setTimeout(() => {
+                display.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 100);
+
+            
+            display.innerHTML = `
+                <div class="batch-grid">
+                    ${cards}
+                </div>
+                <div class="image-actions">
+                    <button class="action-btn primary" onclick="downloadAllBatchImages()">💾 下载全部</button>
+                    <button class="action-btn" onclick="copyPrompt('${prompt.replace(/'/g, "\\'")}')">📋 复制提示词</button>
+                </div>
+            `;
+
+            // 保存历史记录
+            imageUrls.forEach(url => saveToHistory(prompt, url, referenceImages));
+
+            // 存储批量图片 URL 供下载使用
+            window._batchImageUrls = imageUrls.slice();
+
+            // 初始化拖拽排序
+            setupBatchDragSort();
+        }
+
+        // ========== 4. 图片拖拽排序 ==========
+        function setupBatchDragSort() {
+            const grid = document.querySelector('.batch-grid');
+            if (!grid) return;
+
+            let dragSrcEl = null;
+            let dragSrcIndex = -1;
+
+            grid.addEventListener('dragstart', function(e) {
+                const card = e.target.closest('.batch-card');
+                if (!card) return;
+                dragSrcEl = card;
+                dragSrcIndex = parseInt(card.dataset.index);
+                card.classList.add('dragging');
+                e.dataTransfer.effectAllowed = 'move';
+                e.dataTransfer.setData('text/plain', dragSrcIndex);
+            });
+
+            grid.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'move';
+                const targetCard = e.target.closest('.batch-card');
+                if (targetCard && targetCard !== dragSrcEl) {
+                    grid.querySelectorAll('.batch-card').forEach(c => c.classList.remove('drag-over'));
+                    targetCard.classList.add('drag-over');
+                }
+            });
+
+            grid.addEventListener('dragleave', function(e) {
+                const targetCard = e.target.closest('.batch-card');
+                if (targetCard) targetCard.classList.remove('drag-over');
+            });
+
+            grid.addEventListener('drop', function(e) {
+                e.preventDefault();
+                const targetCard = e.target.closest('.batch-card');
+                if (!targetCard || targetCard === dragSrcEl) return;
+
+                targetCard.classList.remove('drag-over');
+                const targetIndex = parseInt(targetCard.dataset.index);
+
+                // 交换数组中的图片 URL
+                const urls = window._batchImageUrls;
+                if (urls && dragSrcIndex >= 0 && targetIndex >= 0 && dragSrcIndex !== targetIndex) {
+                    const temp = urls[dragSrcIndex];
+                    urls[dragSrcIndex] = urls[targetIndex];
+                    urls[targetIndex] = temp;
+                }
+
+                // 交换 DOM 元素
+                const allCards = Array.from(grid.querySelectorAll('.batch-card'));
+                const srcCard = dragSrcEl;
+                const allIndices = allCards.map(c => parseInt(c.dataset.index));
+                const srcPos = allIndices.indexOf(dragSrcIndex);
+                const tgtPos = allIndices.indexOf(targetIndex);
+
+                if (srcPos < tgtPos) {
+                    targetCard.after(srcCard);
+                } else {
+                    targetCard.before(srcCard);
+                }
+
+                // 重新设置 data-index
+                grid.querySelectorAll('.batch-card').forEach((c, idx) => {
+                    c.dataset.index = idx;
+                });
+
+                dragSrcEl = null;
+                dragSrcIndex = -1;
+            });
+
+            grid.addEventListener('dragend', function(e) {
+                grid.querySelectorAll('.batch-card').forEach(c => {
+                    c.classList.remove('dragging');
+                    c.classList.remove('drag-over');
+                });
+                dragSrcEl = null;
+                dragSrcIndex = -1;
+            });
+        }
+
+        function downloadAllBatchImages() {
+            const urls = window._batchImageUrls || [];
+            urls.forEach((url, i) => {
+                setTimeout(() => {
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `product-image-${i + 1}-${Date.now()}.png`;
+                    a.target = '_blank';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                }, i * 500);
+            });
+
+        }
+        function startPolling() {
+            if (pollTimer) clearInterval(pollTimer);
+
+            pollTimer = setInterval(async () => {
+                try {
+                    const response = await AuthService.fetch(API_BASE + '/status?task_id=' + currentTaskId);
+                    const data = await response.json();
+
+                    if (data.data?.status === 'completed') {
+                        clearInterval(pollTimer);
+                        pollTimer = null;
+                        const imageUrl = data.data?.result?.images?.[0] || data.output?.image_url;
+                        if (imageUrl) {
+                            const prompt = document.getElementById('promptInput').value.trim();
+                            let referenceImages = [];
+                            uploadedFiles.forEach(f => referenceImages.push(f.url));
+                            const refInput = document.getElementById('referenceInput');
+                            const manualUrls = refInput.value.trim().split('\n')
+                                .map(u => u.trim()).filter(u => u.length > 0);
+                            referenceImages = referenceImages.concat(manualUrls);
+                            showImage(imageUrl, prompt);
+                            saveToHistory(prompt, imageUrl, referenceImages);
+                        }
+                    } else if (data.data?.status === 'failed') {
+                        clearInterval(pollTimer);
+                        pollTimer = null;
+                        showError('生成失败：' + (data.message || '未知错误'));
+                        resetDisplay();
+                    }
+                    // PENDING / RUNNING 继续轮询
+                } catch (err) {
+                    // 轮询出错，继续
+                }
+            }, 3000);
+
+            // 最多轮询 5 分钟
+            setTimeout(() => {
+                if (pollTimer) {
+                    clearInterval(pollTimer);
+                    pollTimer = null;
+                    showError('生成超时，请稍后在历史记录中查看');
+                    resetDisplay();
+                }
+            }, 300000);
+        }
+
+        function showImage(url, prompt) {
+            const display = document.getElementById('imageDisplay');
+            // 生成成功提示
+            showToast(`🎉 批量生成完成！共 ${imageUrls.length} 张图片`, 'success', 2500);
+
+            // 滚动到结果区域
+            setTimeout(() => {
+                display.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 100);
+
+            
+            display.innerHTML = `
+                <img src="${url}" alt="生成的商品主图">
+                <div class="image-actions">
+                    <button class="action-btn primary" onclick="downloadImage('${url}')">💾 下载图片</button>
+                    <button class="action-btn" onclick="copyPrompt('${prompt.replace(/'/g, "\\'")}')">📋 复制提示词</button>
+                </div>
+            `;
+        }
+
+        function resetDisplay() {
+            const display = document.getElementById('imageDisplay');
+            // 生成成功提示
+            showToast(`🎉 批量生成完成！共 ${imageUrls.length} 张图片`, 'success', 2500);
+
+            // 滚动到结果区域
+            setTimeout(() => {
+                display.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 100);
+
+            
+            display.innerHTML = `
+                <div class="placeholder">
+                    <div class="placeholder-icon">🖼️</div>
+                    <div class="placeholder-text">输入商品描述，点击生成<br>AI 将为你创建电商主图</div>
+                </div>
+            `;
+        }
+
+        function downloadImage(url) {
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'product-image-' + Date.now() + '.png';
+            a.target = '_blank';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+
+        function copyPrompt(prompt) {
+            navigator.clipboard.writeText(prompt).then(function() {
+                showToast('📋 提示词已复制到剪贴板', 'success', 2000);
+                const btn = event.target;
+                const original = btn.textContent;
+                btn.textContent = '✅ 已复制';
+                setTimeout(function() { btn.textContent = original; }, 2000);
+            });
+        }
+
+        function clearError() {
+            document.getElementById('errorMsg').innerHTML = '';
+        }
+
+        // ========== 历史记录 ==========
+
+        function getHistory() {
+            try {
+                return JSON.parse(localStorage.getItem('gpt_image_history') || '[]');
+            } catch {
+                return [];
+            }
+        }
+
+        async function saveToHistory(prompt, imageUrl, referenceImages) {
+            // 1. 保存到 localStorage（本地备份）
+            const history = getHistory();
+            history.unshift({
+                id: Date.now(),
+                prompt: prompt,
+                imageUrl: imageUrl,
+                aspect: currentAspectRatio,
+                referenceImages: referenceImages || [],
+                time: new Date().toLocaleString('zh-CN')
+            });
+            if (history.length > 50) history.pop();
+            localStorage.setItem('gpt_image_history', JSON.stringify(history));
+
+            // 2. 保存到数据库（如果已登录）
+            if (AuthService.isLoggedIn() && imageUrl) {
+                try {
+                    await fetch(API_BASE + '/generate', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': 'Bearer ' + AuthService.getToken()
+                        },
+                        body: JSON.stringify({
+                            prompt: prompt,
+                            aspect_ratio: currentAspectRatio,
+                            reference_images: referenceImages,
+                            save_history_only: true,
+                            image_url: imageUrl
+                        })
+                    });
+                    console.log('历史记录已保存到数据库');
+                } catch (err) {
+                    console.error('保存数据库历史记录失败:', err);
+                }
+            }
+        }
+
+        async function loadHistory() {
+            const container = document.getElementById('historyList');
+            container.innerHTML = '<div class="empty-state">加载中...</div>';
+
+            try {
+                // 从数据库 API 加载历史记录
+                const response = await AuthService.fetch(API_BASE + '/history?limit=50&offset=0');
+                const data = await response.json();
+
+                if (data.code === 200 && data.data?.history?.length > 0) {
+                    const history = data.data.history;
+                    container.innerHTML = history.map((item, index) => `
+                        <div class="history-item" onclick="viewHistoryDb(${index})">
+                            <div class="history-prompt">${item.prompt || '无提示词'}</div>
+                            <div class="history-meta">
+                                <span>${new Date(item.created_at).toLocaleString('zh-CN')} · ${item.aspect_ratio || '1:1'}</span>
+                                <span class="history-delete" onclick="event.stopPropagation(); deleteHistoryDb(${index})">删除</span>
+                            </div>
+                        </div>
+                    `).join('');
+                } else {
+                    container.innerHTML = '<div class="empty-state">暂无历史记录</div>';
+                }
+            } catch (err) {
+                console.error('加载历史记录失败:', err);
+                // 降级到 localStorage
+                const history = getHistory();
+                if (history.length === 0) {
+                    container.innerHTML = '<div class="empty-state">暂无历史记录</div>';
+                } else {
+                    container.innerHTML = history.map(item => `
+                        <div class="history-item" onclick="viewHistory(${item.id})">
+                            <div class="history-prompt">${item.prompt}</div>
+                            <div class="history-meta">
+                                <span>${item.time} · ${item.aspect}</span>
+                                <span class="history-delete" onclick="event.stopPropagation(); deleteHistory(${item.id})">删除</span>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+            }
+        }
+
+        // 查看数据库历史记录
+        async function viewHistoryDb(index) {
+            try {
+                const response = await AuthService.fetch(API_BASE + '/history?limit=1&offset=' + index);
+                const data = await response.json();
+                if (data.code === 200 && data.data?.history?.[0]) {
+                    const item = data.data.history[0];
+                    document.getElementById('promptInput').value = item.prompt || '';
+                    switchTab('generate');
+                    if (item.image_url) {
+                        showImage(item.image_url, item.prompt || '');
+                    }
+                }
+            } catch (err) {
+                console.error('查看历史记录失败:', err);
+            }
+        }
+
+        // 删除数据库历史记录
+        async function deleteHistoryDb(index) {
+            // 暂时不支持删除数据库记录，仅提示
+            showToast('❌ 数据库记录暂不支持删除', 'error', 2000);
+        }
+
+        function viewHistory(id) {
+            const history = getHistory();
+            const item = history.find(h => h.id === id);
+            if (!item) return;
+
+            document.getElementById('promptInput').value = item.prompt;
+            switchTab('generate');
+            // 显示图片
+            showImage(item.imageUrl, item.prompt);
+        }
+
+        function deleteHistory(id) {
+            let history = getHistory();
+            history = history.filter(h => h.id !== id);
+            localStorage.setItem('gpt_image_history', JSON.stringify(history));
+            loadHistory();
+        }
+
+        // ========== 详情页生成 ==========
+
+        async function generateDetail() {
+            // 检查登录态
+            if (!checkAuth()) return;
+            const productName = document.getElementById('detailProductName').value.trim();
+            if (!productName) {
+                showDetailError('请输入商品名称');
+                return;
+            }
+
+            const category = document.getElementById('detailCategory').value.trim();
+            const sellingPoints = document.getElementById('detailSellingPoints').value.trim();
+            const material = document.getElementById('detailMaterial').value.trim();
+            const size = document.getElementById('detailSize').value.trim();
+            const style = document.getElementById('detailStyle').value.trim();
+            const referenceStyle = document.getElementById('detailReferenceStyle').value.trim();
+
+            // 收集参考图 URL（上传的文件 + 手动输入的 URL）
+            let detailReferenceImages = [];
+            uploadedFiles.forEach(f => detailReferenceImages.push(f.url));
+            const manualDetailUrls = referenceStyle.split('\n')
+                .map(u => u.trim())
+                .filter(u => u.length > 0);
+            detailReferenceImages = detailReferenceImages.concat(manualDetailUrls);
+
+            const btn = document.getElementById('detailBtn');
+            btn.disabled = true;
+            btn.textContent = '⏳ AI 策划中...';
+            showDetailError('');
+
+            const waterfall = document.getElementById('detailWaterfall');
+            waterfall.style.display = 'flex';
+            waterfall.innerHTML = '';
+
+            try {
+                // Step 1: 获取 AI 生成的详情页 prompt 序列
+                const promptsResponse = await AuthService.fetch(API_BASE + '/detail-prompts', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        productName, category, sellingPoints, material, size, style, referenceStyle
+                    })
+                });
+
+                const promptsData = await promptsResponse.json();
+                if (promptsData.code !== 200 || !promptsData.data?.prompts) {
+                    throw new Error(promptsData.error || 'AI 策划失败');
+                }
+
+                const detailPrompt = promptsData.data.prompts;
+                btn.textContent = '🎯 生成中...';
+
+                // Step 2: 生成详情页图片
+                waterfall.innerHTML = `
+                    <div class="detail-card-loading">
+                        <div class="spinner"></div>
+                        <div class="loading-text">详情页生成中...</div>
+                    </div>
+                `;
+
+                    // 提交生成任务
+                    const genResponse = await AuthService.fetch(API_BASE + '/generate', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            prompt: detailPrompt.prompt,
+                            aspect_ratio: detailPrompt.aspect || '3:4',
+                            reference_images: detailReferenceImages.length > 0 ? detailReferenceImages : undefined
+                        })
+                    });
+
+                    const genData = await genResponse.json();
+
+                    let imageUrl;
+                    if (genData.data?.task_id) {
+                        imageUrl = await pollTask(genData.data.task_id);
+                    } else if (genData.output?.image_url) {
+                        imageUrl = genData.output.image_url;
+                    } else {
+                        throw new Error(genData.code !== 200 && genData.message ? genData.message : '生成失败：API 响应异常');
+                    }
+
+                    // 显示结果
+                    waterfall.innerHTML = `
+                        <div class="detail-card">
+                            <div class="detail-card-header">
+                                <span class="detail-card-title">📋 详情页</span>
+                                <div class="detail-card-actions">
+                                    <button class="detail-card-btn" onclick="downloadImage('${imageUrl}')">💾 下载</button>
+                                    <button class="detail-card-btn primary" onclick="regenerateDetail()">🔄 重生成</button>
+                                </div>
+                            </div>
+                            <img src="${imageUrl}" alt="详情页">
+                            <div class="detail-card-prompt">${detailPrompt.prompt}</div>
+                        </div>
+                        <div class="detail-actions">
+                            <button class="detail-action-btn primary" onclick="downloadImage('${imageUrl}')">💾 下载图片</button>
+                            <button class="detail-action-btn" onclick="copyText('${detailPrompt.prompt.replace(/'/g, "\\'")}')">📋 复制提示词</button>
+                        </div>
+                    `;
+
+                    // 保存详情页历史
+                    saveDetailHistory(productName, detailPrompt);
+                
+                showToast("💾 草稿已自动保存", "info", 1500);
+                    clearDraft();
+
+            } catch (err) {
+                showDetailError('生成失败：' + err.message);
+            } finally {
+                setTimeout(() => {
+                    btn.disabled = false;
+                    btn.textContent = '🎯 生成详情页';
+                }, 3000);
+            }
+        }
+
+        async function regenerateDetail() {
+            const productName = document.getElementById('detailProductName').value.trim();
+            if (!productName) {
+                showDetailError('请输入商品名称');
+                return;
+            }
+
+            const category = document.getElementById('detailCategory').value.trim();
+            const sellingPoints = document.getElementById('detailSellingPoints').value.trim();
+            const material = document.getElementById('detailMaterial').value.trim();
+            const size = document.getElementById('detailSize').value.trim();
+            const style = document.getElementById('detailStyle').value.trim();
+            const referenceStyle = document.getElementById('detailReferenceStyle').value.trim();
+
+            let detailReferenceImages = [];
+            uploadedFiles.forEach(f => detailReferenceImages.push(f.url));
+            const manualDetailUrls = referenceStyle.split('\n')
+                .map(u => u.trim())
+                .filter(u => u.length > 0);
+            detailReferenceImages = detailReferenceImages.concat(manualDetailUrls);
+
+            const waterfall = document.getElementById('detailWaterfall');
+            waterfall.innerHTML = `
+                <div class="detail-card-loading">
+                    <div class="spinner"></div>
+                    <div class="loading-text">重新生成中...</div>
+                </div>
+            `;
+
+            try {
+                const promptsResponse = await AuthService.fetch(API_BASE + '/detail-prompts', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        productName, category, sellingPoints, material, size, style, referenceStyle
+                    })
+                });
+
+                const promptsData = await promptsResponse.json();
+                if (promptsData.code !== 200 || !promptsData.data?.prompts) {
+                    throw new Error(promptsData.error || 'AI 策划失败');
+                }
+
+                const detailPrompt = promptsData.data.prompts;
+
+                const genResponse = await AuthService.fetch(API_BASE + '/generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        prompt: detailPrompt.prompt,
+                        aspect_ratio: detailPrompt.aspect || '3:4',
+                        reference_images: detailReferenceImages.length > 0 ? detailReferenceImages : undefined
+                    })
+                });
+
+                const genData = await genResponse.json();
+
+                let imageUrl;
+                if (genData.data?.task_id) {
+                    imageUrl = await pollTask(genData.data.task_id);
+                } else if (genData.output?.image_url) {
+                    imageUrl = genData.output.image_url;
+                } else {
+                    throw new Error(genData.code !== 200 && genData.message ? genData.message : '生成失败：API 响应异常');
+                }
+
+                waterfall.innerHTML = `
+                    <div class="detail-card">
+                        <div class="detail-card-header">
+                            <span class="detail-card-title">📋 详情页</span>
+                            <div class="detail-card-actions">
+                                <button class="detail-card-btn" onclick="downloadImage('${imageUrl}')">💾 下载</button>
+                                <button class="detail-card-btn primary" onclick="regenerateDetail()">🔄 重生成</button>
+                            </div>
+                        </div>
+                        <img src="${imageUrl}" alt="详情页">
+                        <div class="detail-card-prompt">${detailPrompt.prompt}</div>
+                    </div>
+                    <div class="detail-actions">
+                        <button class="detail-action-btn primary" onclick="downloadImage('${imageUrl}')">💾 下载图片</button>
+                        <button class="detail-action-btn" onclick="copyText('${detailPrompt.prompt.replace(/'/g, "\\'")}')">📋 复制提示词</button>
+                    </div>
+                `;
+
+            } catch (err) {
+                waterfall.innerHTML = `
+                    <div class="detail-card-loading">
+                        <div style="color: #d32f2f; text-align: center;">
+                            <div style="font-size: 32px; margin-bottom: 12px;">❌</div>
+                            <div>${err.message}</div>
+                            <button class="detail-card-btn" style="margin-top: 16px;" onclick="regenerateDetail()">重试</button>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        function copyText(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                showToast('📋 提示词已复制到剪贴板', 'success', 2000);
+            });
+        }
+
+        function pollTask(taskId, maxTime = 300000) {
+            return new Promise((resolve, reject) => {
+                const start = Date.now();
+                const timer = setInterval(async () => {
+                    if (Date.now() - start > maxTime) {
+                        clearInterval(timer);
+                        reject(new Error('生成超时'));
+                        return;
+                    }
+                    try {
+                        const response = await AuthService.fetch(API_BASE + '/status?task_id=' + taskId);
+                        const data = await response.json();
+                        if (data.data?.status === 'completed') {
+                            clearInterval(timer);
+                            const imageUrl = data.data?.result?.images?.[0] || data.output?.image_url;
+                            resolve(imageUrl);
+                        } else if (data.data?.status === 'failed') {
+                            clearInterval(timer);
+                            reject(new Error(data.message || '生成失败'));
+                        }
+                    } catch (err) {
+                        // 继续轮询
+                    }
+                }, 3000);
+            });
+        }
+
+        function renderDetailCard(cardId, promptData, imageUrl) {
+            const card = document.getElementById(cardId);
+            if (!card) return;
+            card.innerHTML = `
+                <div class="detail-card-header">
+                    <span class="detail-card-title">${promptData.title}</span>
+                    <div class="detail-card-actions">
+                        <button class="detail-card-btn" onclick="downloadImage('${imageUrl}')">💾 下载</button>
+                        <button class="detail-card-btn" onclick="regenerateCard('${cardId}', ${JSON.stringify(promptData.prompt).replace(/"/g, '&quot;')}, '${promptData.aspect || '3:4'}')">🔄 重生成</button>
+                    </div>
+                </div>
+                <img src="${imageUrl}" alt="${promptData.title}">
+                <div class="detail-card-prompt">${promptData.prompt}</div>
+            `;
+        }
+
+        async function regenerateCard(cardId, prompt, aspect) {
+            const card = document.getElementById(cardId);
+            card.innerHTML = `
+                <div class="detail-card-loading">
+                    <div class="spinner"></div>
+                    <div class="loading-text">重新生成中...</div>
+                </div>
+            `;
+            try {
+                const genResponse = await AuthService.fetch(API_BASE + '/generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        prompt,
+                        aspect_ratio: aspect,
+                        reference_images: detailReferenceImages.length > 0 ? detailReferenceImages : undefined
+                    })
+                });
+                const genData = await genResponse.json();
+                let imageUrl;
+                if (genData.data?.task_id) {
+                    imageUrl = await pollTask(genData.data.task_id);
+                } else if (genData.output?.image_url) {
+                    imageUrl = genData.output.image_url;
+                } else {
+                    throw new Error(genData.code !== 200 && genData.message ? genData.message : '生成失败：API 响应异常');
+                }
+                // 重新渲染
+                const title = card.closest('.detail-card')?.querySelector('.detail-card-title')?.textContent || '详情页';
+                renderDetailCard(cardId, { title, prompt, aspect }, imageUrl);
+            } catch (err) {
+                card.innerHTML = `
+                    <div style="padding: 40px; text-align: center; color: #d32f2f;">
+                        重生成失败：${err.message}<br>
+                        <button class="detail-card-btn" style="margin-top: 12px;" onclick="regenerateCard('${cardId}', '${prompt.replace(/'/g, "\\'")}', '${aspect}')">重试</button>
+                    </div>
+                `;
+            }
+        }
+
+        function downloadAllDetails() {
+            const images = document.querySelectorAll('#detailWaterfall img');
+            images.forEach((img, i) => {
+                setTimeout(() => {
+                    const a = document.createElement('a');
+                    a.href = img.src;
+                    a.download = 'detail-page-' + (i + 1) + '.png';
+                    a.target = '_blank';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                }, i * 500);
+            });
+        }
+
+        function copyAllDetailPrompts() {
+            const prompts = document.querySelectorAll('.detail-card-prompt');
+            const texts = Array.from(prompts).map(p => p.textContent).join('\n\n---\n\n');
+            navigator.clipboard.writeText(texts).then(() => {
+                showToast('✅ 全部提示词已复制', 'success');
+            });
+        }
+
+        function saveDetailHistory(productName, prompts) {
+            const details = getDetailHistory();
+            details.unshift({
+                id: Date.now(),
+                productName,
+                prompts,
+                time: new Date().toLocaleString('zh-CN')
+            });
+            if (details.length > 20) details.pop();
+            localStorage.setItem('gpt_detail_history', JSON.stringify(details));
+        }
+
+        function getDetailHistory() {
+            try {
+                return JSON.parse(localStorage.getItem('gpt_detail_history') || '[]');
+            } catch {
+                return [];
+            }
+        }
+
+        // 调试信息
+        setTimeout(() => {
+            const debug = document.createElement('div');
+            debug.id = 'debugInfo';
+            debug.style.cssText = 'position:fixed;bottom:10px;right:10px;background:#333;color:#fff;padding:8px 12px;border-radius:6px;font-size:12px;z-index:9999;opacity:0.8;';
+            debug.innerHTML = "API: " + API_BASE + "<br>Token: " + (localStorage.getItem("product-image-token") ? "✅" : "❌") + "<br>Logged: " + AuthService.isLoggedIn();
+            document.body.appendChild(debug);
+            console.log("Debug info loaded");
+        }, 2000);
+    </script>
+</body>
+</html>
