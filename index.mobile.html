@@ -841,7 +841,7 @@
         }
 
         // Toast
-        function showToast(message, type = 'info') {
+        function showToast(message, type) { return; // Disabled return; // 已禁用
             const container = document.getElementById('toastContainer');
             const toast = document.createElement('div');
             toast.className = 'toast';
