@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>【v3.0-已修复】电商图片生成器 v2.0 | 材视 MaterialView</title>
+    <title>电商图片生成器 | 材视 MaterialView</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -311,39 +311,18 @@
         /* 历史记录 */
         .history-list { display: flex; flex-direction: column; gap: 10px; }
         .history-item {
-            display: flex;
-            gap: 14px;
             padding: 14px;
             background: #f5f5f7;
             border-radius: 10px;
             cursor: pointer;
             transition: all 0.2s;
-            align-items: center;
         }
-        .history-item:hover { background: #e8e8ed; }
-        .history-thumb {
-            width: 80px;
-            height: 80px;
-            border-radius: 8px;
-            object-fit: cover;
-            background: #e0e0e0;
-            flex-shrink: 0;
-            border: 1px solid #ddd;
-            cursor: pointer;
-            transition: transform 0.2s;
-        }
-        .history-thumb:hover { transform: scale(1.08); }
-        .history-info { flex: 1; min-width: 0; }
+        .history-item:hover { background: #e8e8ed; transform: translateX(4px); }
         .history-prompt {
             font-size: 14px;
             line-height: 1.5;
             margin-bottom: 6px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            cursor: pointer;
         }
-        .history-prompt:hover { color: #667eea; }
         .history-meta {
             font-size: 12px;
             color: #86868b;
@@ -354,45 +333,10 @@
         .history-delete {
             color: #ff3b30;
             cursor: pointer;
-            padding: 6px 10px;
-            border-radius: 8px;
-            border: 1px solid rgba(255,59,48,0.2);
-            background: rgba(255,59,48,0.05);
-            font-size: 12px;
-            white-space: nowrap;
-            transition: all 0.2s;
+            padding: 2px 6px;
+            border-radius: 4px;
         }
-        .history-delete:hover { background: rgba(255,59,48,0.15); }
-        .history-actions {
-            display: flex;
-            flex-direction: row;
-            align-items: center;
-            gap: 6px;
-            flex-shrink: 0;
-            margin-left: 8px;
-        }
-        .history-download-btn {
-            width: 36px;
-            height: 36px;
-            border-radius: 8px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            font-size: 14px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 2px 8px rgba(102,126,234,0.3);
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-        .history-download-btn:hover {
-            transform: scale(1.1);
-            box-shadow: 0 4px 16px rgba(102,126,234,0.5);
-        }
-        .history-download-btn:active {
-            transform: scale(0.9);
-        }
+        .history-delete:hover { background: rgba(255,59,48,0.1); }
         .empty-state {
             text-align: center;
             color: #86868b;
@@ -740,52 +684,6 @@
             align-items: center;
             gap: 8px;
         }
-        /* API 健康状态指示器 (P0-3) */
-        .api-status-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-size: 12px;
-            background: rgba(255,255,255,0.15);
-            backdrop-filter: blur(8px);
-            transition: all 0.3s ease;
-        }
-        .api-status-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            display: inline-block;
-            transition: background 0.3s ease;
-        }
-        .api-status-dot.checking { background: #ffd700; animation: pulse 1s infinite; }
-        .api-status-dot.online { background: #34c759; }
-        .api-status-dot.offline { background: #ff3b30; }
-        .api-status-dot.fallback { background: #ff9500; }
-        @keyframes pulse {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.5; transform: scale(1.2); }
-        }
-        /* 进度可视化样式 (P1-4) */
-        .progress-bar-fill {
-            position: relative;
-            overflow: hidden;
-        }
-        .progress-bar-fill::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-            animation: shimmer 1.5s infinite;
-        }
-        @keyframes shimmer {
-            0% { transform: translateX(-100%); }
-            100% { transform: translateX(100%); }
-        }
         /* Toast 图标样式 */
         .toast-icon { font-size: 18px; margin-right: 8px; }
         .toast-message { flex: 1; }
@@ -966,49 +864,53 @@
                 grid-template-columns: repeat(2, 1fr);
             }
         }
-        /* 移动端响应式 (≤768px) - 修复：显示控制面板而非隐藏抽屉 */
+        /* 移动端响应式 (≤768px) */
         @media (max-width: 768px) {
             .header {
                 padding: 12px 16px;
                 flex-direction: column;
                 gap: 8px;
                 text-align: center;
-                z-index: 1001;
             }
             .header h1 { font-size: 18px; }
             .container {
                 flex-direction: column;
                 height: auto;
-                padding-top: 16px;
             }
-            /* 左侧面板直接显示 */
+            /* 左侧面板改为底部抽屉 */
             .left-panel {
-                position: relative;
-                bottom: auto;
-                left: auto;
-                right: auto;
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
                 width: 100%;
                 min-width: auto;
                 max-width: none;
-                height: auto;
+                height: 70vh;
                 border-right: none;
-                border-bottom: 1px solid #e5e5e7;
-                border-top: none;
-                border-radius: 0;
-                z-index: 1;
+                border-bottom: none;
+                border-top: 1px solid #e5e5e7;
+                border-radius: 16px 16px 0 0;
+                z-index: 900;
+                transform: translateY(100%);
+                transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+                box-shadow: 0 -4px 24px rgba(0,0,0,0.15);
+            }
+            .left-panel.drawer-open {
                 transform: translateY(0);
-                transition: none;
             }
             .panel-tabs {
                 overflow-x: auto;
                 -webkit-overflow-scrolling: touch;
             }
             .panel-tab {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
                 padding: 10px 12px;
                 font-size: 13px;
                 white-space: nowrap;
             }
             .panel-content {
+            animation: tab-fade-in 0.3s ease-out;
                 padding: 16px;
             }
             .right-panel {
@@ -1023,6 +925,18 @@
                 height: auto;
                 object-fit: contain;
             }
+            .batch-grid {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+            .image-actions {
+                flex-direction: column;
+                width: 100%;
+            }
+        /* 按钮 ripple 效果 */
+        .action-btn, .generate-btn, .enhance-btn {
+            position: relative;
+            overflow: hidden;
         }
         .action-btn::after, .generate-btn::after, .enhance-btn::after {
             content: '';
@@ -1071,22 +985,6 @@
             }
             .upload-text {
                 font-size: 15px;
-            }
-            /* 历史记录移动端适配 */
-            .history-actions {
-                flex-direction: row;
-                gap: 6px;
-                margin-left: 0;
-                margin-top: 6px;
-            }
-            .history-download-btn {
-                width: 40px;
-                height: 40px;
-                font-size: 18px;
-            }
-            .history-delete {
-                padding: 6px 12px;
-                font-size: 13px;
             }
         }
         /* 触摸设备优化 — 最小点击区域 44x44px */
@@ -1700,14 +1598,7 @@
             <h1>🎨 电商图片生成器</h1>
             <div class="subtitle">Powered by gpt-image-2 | 材视 MaterialView</div>
         </div>
-        <div style="display:flex;align-items:center;gap:12px;">
-            <!-- API 健康状态指示器 (P0-3) -->
-            <div id="apiStatusBadge" class="api-status-badge" style="display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:20px;font-size:12px;background:rgba(255,255,255,0.15);backdrop-filter:blur(8px);">
-                <span id="apiStatusDot" style="width:8px;height:8px;border-radius:50%;background:#ffd700;display:inline-block;"></span>
-                <span id="apiStatusText">检测中...</span>
-            </div>
-            <button id="authBtn" class="auth-btn-header" onclick="showAuthModal()">登录</button>
-        </div>
+        <button id="authBtn" class="auth-btn-header" onclick="showAuthModal()">登录</button>
     </div>
 
     <!-- Toast 通知容器 -->
@@ -1780,17 +1671,6 @@
                     <!-- ④ 操作区 -->
                     <div class="section-group">
                         <button class="generate-btn btn-ripple" id="generateBtn" onclick="generateImage()">🚀 批量生成主图</button>
-                        <!-- 进度可视化 (P1-4) -->
-                        <div id="progressContainer" style="display:none;margin-top:16px;">
-                            <div class="progress-header" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-                                <span id="progressStep" style="font-size:13px;color:#667eea;font-weight:500;">准备中...</span>
-                                <span id="progressPercent" style="font-size:12px;color:#86868b;">0%</span>
-                            </div>
-                            <div class="progress-bar-bg" style="width:100%;height:6px;background:#e5e5e7;border-radius:3px;overflow:hidden;">
-                                <div id="progressBar" class="progress-bar-fill" style="width:0%;height:100%;background:linear-gradient(90deg,#667eea,#764ba2);border-radius:3px;transition:width 0.3s ease;"></div>
-                            </div>
-                            <div id="progressDetail" style="font-size:11px;color:#86868b;margin-top:6px;line-height:1.4;"></div>
-                        </div>
                         <div id="errorMsg"></div>
                     </div>
                 </div>
@@ -1864,16 +1744,6 @@
                     <div class="form-group">
                         <div class="form-label">🎨 风格</div>
                         <input type="text" class="form-input" id="detailStyle" placeholder="例如：北欧简约 / 新中式 / 工业风">
-                    </div>
-                    <div class="form-group">
-                        <div class="form-label">📐 图片比例</div>
-                        <div class="aspect-options">
-                            <button class="aspect-btn active" data-detail-ratio="3:4" onclick="selectDetailAspect(this)">3:4</button>
-                            <button class="aspect-btn" data-detail-ratio="1:1" onclick="selectDetailAspect(this)">1:1</button>
-                            <button class="aspect-btn" data-detail-ratio="4:3" onclick="selectDetailAspect(this)">4:3</button>
-                            <button class="aspect-btn" data-detail-ratio="16:9" onclick="selectDetailAspect(this)">16:9</button>
-                            <button class="aspect-btn" data-detail-ratio="9:16" onclick="selectDetailAspect(this)">9:16</button>
-                        </div>
                     </div>
                     <div class="form-group">
                         <div class="form-label">🖼️ 参考图上传（可选，最多5张）</div>
@@ -2152,10 +2022,22 @@
 
         let toastQueue = [];
 
-        // 已禁用 Toast 通知（用户要求不显示日志内容）
         function showToast(message, type = 'info', duration = 3000) {
-            // 不再显示 toast 通知
-            return;
+            const icons = { success: '✅', error: '❌', info: 'ℹ️', warning: '⚠️' };
+            const icon = icons[type] || icons.info;
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = 'toast toast-' + type;
+            toast.innerHTML = `<span class="toast-icon">${icon}</span><span class="toast-message">${message}</span>`;
+            container.appendChild(toast);
+
+            // 自动移除
+            setTimeout(function() {
+                toast.classList.add('toast-out');
+                setTimeout(function() {
+                    if (toast.parentNode) toast.parentNode.removeChild(toast);
+                }, 300);
+            }, duration);
         }
 
         // 覆盖原有的 showError，使用 toast
@@ -2175,112 +2057,6 @@
             if (msg) showToast(msg, 'error');
             document.getElementById('detailError').innerHTML = msg ? '<div class="error-msg">' + msg + '</div>' : '';
         }
-
-        // ========== P0-3: API 健康检查 ==========
-        let apiHealthStatus = 'checking'; // checking | online | offline | fallback
-
-        async function checkApiHealth() {
-            const dot = document.getElementById('apiStatusDot');
-            const text = document.getElementById('apiStatusText');
-            const badge = document.getElementById('apiStatusBadge');
-
-            if (!dot || !text) return;
-
-            // 设置为检测中状态
-            dot.className = 'api-status-dot checking';
-            text.textContent = '检测中...';
-
-            try {
-                // 使用一个简单的健康检查端点
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 5000);
-
-                const response = await fetch(API_BASE + '/health', {
-                    method: 'GET',
-                    signal: controller.signal
-                });
-
-                clearTimeout(timeoutId);
-
-                if (response.ok) {
-                    const data = await response.json();
-                    if (data.status === 'ok' || data.status === 'healthy') {
-                        apiHealthStatus = 'online';
-                        dot.className = 'api-status-dot online';
-                        text.textContent = 'API 正常';
-                        badge.style.background = 'rgba(52, 199, 89, 0.2)';
-                        return true;
-                    }
-                }
-
-                // 如果健康检查失败，尝试实际调用API
-                throw new Error('Health check failed');
-            } catch (error) {
-                // 健康检查端点不可用，API 可能离线
-                apiHealthStatus = 'offline';
-                dot.className = 'api-status-dot offline';
-                text.textContent = 'API 异常';
-                badge.style.background = 'rgba(255, 59, 48, 0.2)';
-
-                // 显示警告提示
-                showToast('⚠️ API 服务响应异常，请尝试刷新页面或联系管理员', 'warning', 5000);
-                return false;
-            }
-        }
-
-        // ========== P1-4: 进度可视化 ==========
-        const ProgressManager = {
-            container: null,
-            stepEl: null,
-            percentEl: null,
-            barEl: null,
-            detailEl: null,
-            currentStep: 0,
-            totalSteps: 0,
-
-            init(totalSteps) {
-                this.container = document.getElementById('progressContainer');
-                this.stepEl = document.getElementById('progressStep');
-                this.percentEl = document.getElementById('progressPercent');
-                this.barEl = document.getElementById('progressBar');
-                this.detailEl = document.getElementById('progressDetail');
-                this.totalSteps = totalSteps;
-                this.currentStep = 0;
-
-                if (this.container) {
-                    this.container.style.display = 'block';
-                }
-                this.update('准备中...', 0, '正在初始化生成环境');
-            },
-
-            update(step, percent, detail) {
-                if (this.stepEl) this.stepEl.textContent = step;
-                if (this.percentEl) this.percentEl.textContent = Math.round(percent) + '%';
-                if (this.barEl) this.barEl.style.width = percent + '%';
-                if (this.detailEl && detail) this.detailEl.textContent = detail;
-            },
-
-            setStep(stepName, detail) {
-                this.currentStep++;
-                const percent = Math.min((this.currentStep / this.totalSteps) * 100, 100);
-                this.update(stepName, percent, detail || '');
-            },
-
-            complete() {
-                this.update('✅ 完成', 100, '所有图片生成成功');
-                setTimeout(() => {
-                    if (this.container) this.container.style.display = 'none';
-                }, 3000);
-            },
-
-            error(msg) {
-                this.update('❌ 生成失败', this.currentStep > 0 ? (this.currentStep / this.totalSteps) * 100 : 0, msg || '未知错误');
-            },
-
-            hide() {
-                if (this.container) this.container.style.display = 'none';
-            }
-        };
 
         // ========== Token 管理 ==========
         const AuthService = {
@@ -2487,8 +2263,19 @@
         // 页面加载时检查登录态
         window.addEventListener('DOMContentLoaded', () => {
             updateAuthUI();
-            // 如果未登录，不显示拦截提示，让用户正常使用
-            // 登录后可使用所有功能，未登录时部分功能受限
+            // 如果未登录，显示提示
+            if (!AuthService.isLoggedIn()) {
+                const notice = document.createElement('div');
+                notice.id = 'authNotice';
+                notice.style.cssText = 'position:fixed;top:20px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg, #667eea 0%, #764ba2 100%);color:white;padding:12px 24px;border-radius:8px;z-index:999;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,0.2);';
+                notice.innerHTML = '🔐 请先登录后再使用所有功能';
+                notice.onclick = () => {
+                    notice.remove();
+                    showAuthModal();
+                };
+                document.body.appendChild(notice);
+                setTimeout(() => { if (notice.parentNode) notice.remove(); }, 5000);
+            }
         });
 
         function showAuthModal() { document.getElementById('authModal').style.display = 'flex'; }
@@ -2564,9 +2351,6 @@
             // 恢复草稿
             loadDraft();
 
-            // P0-3: API 健康检查
-            checkApiHealth();
-
             // 提示词输入自动保存草稿（2秒 debounce）
             var promptInput = document.getElementById('promptInput');
             var refInput = document.getElementById('referenceInput');
@@ -2634,26 +2418,18 @@
         // Tab 切换
         function switchTab(tab) {
             // 保存当前 Tab 的滚动位置
+            const currentTabEl = document.querySelector('.panel-content[style*="block"], .panel-tab.active');
             const activeContent = document.querySelector('.panel-content');
             if (activeContent && activeContent.style.display !== 'none') {
-                tabScrollPositions[activeContent.id] = activeContent.scrollTop;
+                const activeId = activeContent.id;
+                tabScrollPositions[activeId] = activeContent.scrollTop;
             }
-
-            // 清理所有 Tab 的输入和状态
-            clearGenerateTab();
-            clearTemplateTab();
-            clearDetailTab();
 
             document.querySelectorAll('.panel-tab').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.panel-content').forEach(c => c.style.display = 'none');
             const targetContent = document.getElementById('tab-' + tab);
             targetContent.style.display = 'block';
-            // 安全获取 event.target，兼容程序化调用
-            const tabBtns = document.querySelectorAll('.panel-tab');
-            const tabNames = ['generate', 'template', 'detail', 'history'];
-            const idx = tabNames.indexOf(tab);
-            if (idx >= 0 && tabBtns[idx]) tabBtns[idx].classList.add('active');
-            else if (typeof event !== 'undefined' && event.target) event.target.classList.add('active');
+            event.target.classList.add('active');
 
             // 恢复目标 Tab 的滚动位置
             const targetId = 'tab-' + tab;
@@ -2663,68 +2439,15 @@
                 targetContent.scrollTop = 0;
             }
 
-            // 右侧展示区根据 Tab 切换
+            if (tab === 'history') loadHistory();
             if (tab === 'generate') {
                 document.getElementById('imageDisplay').style.display = '';
                 document.getElementById('detailWaterfall').style.display = 'none';
-            } else if (tab === 'template') {
-                document.getElementById('imageDisplay').style.display = '';
-                document.getElementById('detailWaterfall').style.display = 'none';
-            } else if (tab === 'detail') {
+            }
+            if (tab === 'detail') {
                 document.getElementById('imageDisplay').style.display = 'none';
                 document.getElementById('detailWaterfall').style.display = '';
-            } else if (tab === 'history') {
-                loadHistory();
             }
-        }
-
-        // 清理生成图片 Tab
-        function clearGenerateTab() {
-            document.getElementById('promptInput').value = '';
-            document.getElementById('referenceInput').value = '';
-            uploadedFiles = [];
-            renderUploadedFiles();
-            document.getElementById('errorMsg').innerHTML = '';
-            resetDisplay();
-            // 重置比例和批量选择
-            document.querySelectorAll('#tab-generate .aspect-btn').forEach(b => b.classList.remove('active'));
-            document.querySelector('#tab-generate .aspect-btn[data-ratio="1:1"]')?.classList.add('active');
-            document.querySelector('#tab-generate .aspect-btn[data-count="2"]')?.classList.add('active');
-            currentAspectRatio = '1:1';
-            batchCount = 2;
-        }
-
-        // 清理模版生图 Tab
-        function clearTemplateTab() {
-            document.getElementById('templateLabels').value = '';
-            document.getElementById('templateReferenceInput').value = '';
-            templateUploadedFiles = [];
-            renderTemplateUploadedFiles();
-            document.getElementById('templateError').innerHTML = '';
-            // 重置生成模式
-            document.querySelectorAll('#tab-template .aspect-btn').forEach(b => b.classList.remove('active'));
-            document.querySelector('#tab-template .aspect-btn[data-mode="no-ref"]')?.classList.add('active');
-        }
-
-        // 清理详情页 Tab
-        function clearDetailTab() {
-            document.getElementById('detailProductName').value = '';
-            document.getElementById('detailCategory').value = '';
-            document.getElementById('detailSellingPoints').value = '';
-            document.getElementById('detailMaterial').value = '';
-            document.getElementById('detailSize').value = '';
-            document.getElementById('detailStyle').value = '';
-            document.getElementById('detailReferenceStyle').value = '';
-            // 重置比例选择器
-            detailAspectRatio = '3:4';
-            document.querySelectorAll('#tab-detail .aspect-btn').forEach(b => b.classList.remove('active'));
-            document.querySelector('#tab-detail .aspect-btn[data-detail-ratio="3:4"]')?.classList.add('active');
-            // 详情页复用 uploadedFiles
-            uploadedFiles = [];
-            renderDetailUploadedFiles();
-            document.getElementById('detailError').innerHTML = '';
-            // 清空详情页展示区
-            document.getElementById('detailWaterfall').innerHTML = '';
         }
 
         // 选择比例
@@ -2739,14 +2462,6 @@
             document.querySelectorAll('.aspect-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             currentAspectRatio = btn.dataset.ratio;
-        }
-
-        // 详情页比例选择
-        let detailAspectRatio = '3:4';
-        function selectDetailAspect(btn) {
-            document.querySelectorAll('#tab-detail .aspect-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            detailAspectRatio = btn.dataset.detailRatio;
         }
 
         // 提示词增强 — 调用千问 API
@@ -3062,6 +2777,15 @@
             showTemplateError('');
 
             const display = document.getElementById('imageDisplay');
+            // 生成成功提示
+            showToast(`🎉 批量生成完成！共 ${imageUrls.length} 张图片`, 'success', 2500);
+
+            // 滚动到结果区域
+            setTimeout(() => {
+                display.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 100);
+
+            
             display.innerHTML = `
                 <div class="loading">
                     <div class="spinner"></div>
@@ -3123,7 +2847,6 @@
         // ========== 主图生成 ==========
 
         async function generateImage() {
-            console.log("[generateImage] 开始执行，prompt:", document.getElementById("promptInput")?.value);
             // 检查登录态
             if (!checkAuth()) return;
             const input = document.getElementById('promptInput');
@@ -3139,24 +2862,17 @@
             btn.textContent = `⏳ 生成中 0/${batchCount}...`;
             clearError();
 
-            // P1-4: 初始化进度可视化
-            const totalSteps = batchCount + 2; // 准备 + N张图片 + 完成
-            ProgressManager.init(totalSteps);
-            ProgressManager.setStep('🔍 检查 API 状态', '正在验证服务可用性');
-
-            // 检查 API 健康状态
-            const apiOk = await checkApiHealth();
-            if (!apiOk) {
-                ProgressManager.error('API 服务异常，无法生成图片');
-                btn.disabled = false;
-                btn.textContent = '🎯 生成主图';
-                return;
-            }
-
-            ProgressManager.setStep('📤 提交生成请求', '正在发送提示词到 AI 服务器');
-
             // 显示加载状态
             const display = document.getElementById('imageDisplay');
+            // 生成成功提示
+            showToast(`🎉 批量生成完成！共 ${imageUrls.length} 张图片`, 'success', 2500);
+
+            // 滚动到结果区域
+            setTimeout(() => {
+                display.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 100);
+
+            
             display.innerHTML = `
                 <div class="loading">
                     <div class="spinner"></div>
@@ -3168,11 +2884,6 @@
                     <div class="loading-text" id="batchCountText">0 / ${batchCount}</div>
                 </div>
             `;
-
-            // 滚动到结果区域
-            setTimeout(() => {
-                display.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }, 100);
 
             try {
                 // 收集参考图 URL
@@ -3188,7 +2899,6 @@
                 const imageUrls = [];
                 for (let i = 0; i < batchCount; i++) {
                     btn.textContent = `⏳ 生成中 ${i + 1}/${batchCount}...`;
-                    ProgressManager.setStep(`🎨 生成第 ${i + 1}/${batchCount} 张`, 'AI 正在创作中，请稍候...');
                     
                     const response = await AuthService.fetch(API_BASE + '/generate', {
                         method: 'POST',
@@ -3204,7 +2914,6 @@
 
                     let imageUrl;
                     if (data.data?.task_id) {
-                        ProgressManager.update('⏳ 排队等待中...', ((i + 0.5) / totalSteps) * 100, '服务器正在排队处理');
                         imageUrl = await pollTask(data.data.task_id);
                     } else if (data.output?.image_url) {
                         imageUrl = data.output.image_url;
@@ -3226,9 +2935,6 @@
                 // 显示所有图片
                 showBatchImages(imageUrls, prompt, referenceImages);
 
-                // P1-4: 标记完成
-                ProgressManager.complete();
-
                 // 生成成功，清除草稿
                 
                 showToast("💾 草稿已自动保存", "info", 1500);
@@ -3237,8 +2943,6 @@
             } catch (err) {
                 const errorMsg = err.message || '未知错误';
                 showError(`生成失败：${errorMsg}\n\n💡 提示：检查网络后重试，或联系管理员`);
-                // P1-4: 更新进度为错误状态
-                ProgressManager.error(errorMsg);
                 resetDisplay();
             } finally {
                 btn.disabled = false;
@@ -3257,10 +2961,15 @@
                 </div>
             `).join('');
 
+            // 生成成功提示
+            showToast(`🎉 批量生成完成！共 ${imageUrls.length} 张图片`, 'success', 2500);
+
             // 滚动到结果区域
             setTimeout(() => {
                 display.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }, 100);
+
+            
             display.innerHTML = `
                 <div class="batch-grid">
                     ${cards}
@@ -3362,29 +3071,20 @@
             });
         }
 
-        async function downloadAllBatchImages() {
+        function downloadAllBatchImages() {
             const urls = window._batchImageUrls || [];
-            if (urls.length === 0) return;
-            showToast(`📥 开始下载 ${urls.length} 张图片...`, 'info', 2000);
-            for (let i = 0; i < urls.length; i++) {
-                try {
-                    const response = await fetch(urls[i]);
-                    const blob = await response.blob();
-                    const blobUrl = URL.createObjectURL(blob);
+            urls.forEach((url, i) => {
+                setTimeout(() => {
                     const a = document.createElement('a');
-                    a.href = blobUrl;
+                    a.href = url;
                     a.download = `product-image-${i + 1}-${Date.now()}.png`;
+                    a.target = '_blank';
                     document.body.appendChild(a);
                     a.click();
                     document.body.removeChild(a);
-                    setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
-                    // 间隔避免浏览器阻止多个下载
-                    await new Promise(r => setTimeout(r, 500));
-                } catch (err) {
-                    window.open(urls[i], '_blank');
-                }
-            }
-            showToast(`✅ 下载完成！共 ${urls.length} 张`, 'success', 2500);
+                }, i * 500);
+            });
+
         }
         function startPolling() {
             if (pollTimer) clearInterval(pollTimer);
@@ -3434,10 +3134,15 @@
 
         function showImage(url, prompt) {
             const display = document.getElementById('imageDisplay');
+            // 生成成功提示
+            showToast(`🎉 批量生成完成！共 ${imageUrls.length} 张图片`, 'success', 2500);
+
             // 滚动到结果区域
             setTimeout(() => {
                 display.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }, 100);
+
+            
             display.innerHTML = `
                 <img src="${url}" alt="生成的商品主图">
                 <div class="image-actions">
@@ -3449,6 +3154,15 @@
 
         function resetDisplay() {
             const display = document.getElementById('imageDisplay');
+            // 生成成功提示
+            showToast(`🎉 批量生成完成！共 ${imageUrls.length} 张图片`, 'success', 2500);
+
+            // 滚动到结果区域
+            setTimeout(() => {
+                display.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 100);
+
+            
             display.innerHTML = `
                 <div class="placeholder">
                     <div class="placeholder-icon">🖼️</div>
@@ -3457,23 +3171,14 @@
             `;
         }
 
-        async function downloadImage(url) {
-            try {
-                // 通过 fetch 获取图片 blob，绕过跨域 download 限制
-                const response = await fetch(url);
-                const blob = await response.blob();
-                const blobUrl = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = blobUrl;
-                a.download = 'product-image-' + Date.now() + '.png';
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
-            } catch (err) {
-                // fetch 失败时降级：新窗口打开（浏览器可手动保存）
-                window.open(url, '_blank');
-            }
+        function downloadImage(url) {
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'product-image-' + Date.now() + '.png';
+            a.target = '_blank';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
         }
 
         function copyPrompt(prompt) {
@@ -3500,8 +3205,7 @@
             }
         }
 
-        async function saveToHistory(prompt, imageUrl, referenceImages) {
-            // 1. 保存到 localStorage（本地备份）
+        function saveToHistory(prompt, imageUrl, referenceImages) {
             const history = getHistory();
             history.unshift({
                 id: Date.now(),
@@ -3511,220 +3215,39 @@
                 referenceImages: referenceImages || [],
                 time: new Date().toLocaleString('zh-CN')
             });
+            // 最多保留 50 条
             if (history.length > 50) history.pop();
             localStorage.setItem('gpt_image_history', JSON.stringify(history));
-
-            // 2. 保存到数据库（如果已登录）
-            if (AuthService.isLoggedIn() && imageUrl) {
-                try {
-                    await fetch(API_BASE + '/generate', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': 'Bearer ' + AuthService.getToken()
-                        },
-                        body: JSON.stringify({
-                            prompt: prompt,
-                            aspect_ratio: currentAspectRatio,
-                            reference_images: referenceImages,
-                            save_history_only: true,
-                            image_url: imageUrl
-                        })
-                    });
-                    console.log('历史记录已保存到数据库');
-                } catch (err) {
-                    console.error('保存数据库历史记录失败:', err);
-                }
-            }
         }
 
-        async function loadHistory() {
+        function loadHistory() {
+            const history = getHistory();
             const container = document.getElementById('historyList');
-            container.innerHTML = '<div class="empty-state">加载中...</div>';
 
-            try {
-                // 从数据库 API 加载历史记录
-                const response = await AuthService.fetch(API_BASE + '/history?limit=50&offset=0');
-                const data = await response.json();
-
-                if (data.code === 200 && data.data?.history?.length > 0) {
-                    const history = data.data.history;
-                    container.innerHTML = history.map((item, index) => {
-                        const imgSrc = item.image_url || '';
-                        const promptTxt = item.prompt || '无提示词';
-                        return `<div class="history-item">
-                            ${imgSrc ? `<img class="history-thumb" src="${imgSrc}" alt="缩略图" onerror="this.style.display='none'" loading="lazy" data-preview="${encodeURIComponent(imgSrc)}" data-prompt="${encodeURIComponent(promptTxt)}">` : '<div class="history-thumb" style="display:flex;align-items:center;justify-content:center;font-size:24px;">🖼️</div>'}
-                            <div class="history-info" data-view-db="${index}">
-                                <div class="history-prompt" title="${promptTxt.replace(/"/g,'&quot;')}">${promptTxt}</div>
-                                <div class="history-meta">
-                                    <span>${new Date(item.created_at).toLocaleString('zh-CN')} · ${item.aspect_ratio || '1:1'}</span>
-                                </div>
-                            </div>
-                            <div class="history-actions">
-                                ${imgSrc ? `<button class="history-download-btn" data-download="${encodeURIComponent(imgSrc)}" title="下载">💾</button>` : ''}
-                                <button class="history-delete" data-delete-db="${index}" title="删除">删除</button>
-                            </div>
-                        </div>`;
-                    }).join('');
-                } else {
-                    // 数据库为空或未登录，降级到 localStorage
-                    const localFallback = getHistory();
-                    if (localFallback.length > 0) {
-                        container.innerHTML = localFallback.map(item => {
-                            const imgSrc = item.imageUrl || '';
-                            const promptTxt = item.prompt || '';
-                            return `<div class="history-item">
-                                ${imgSrc ? `<img class="history-thumb" src="${imgSrc}" alt="缩略图" onerror="this.style.display='none'" loading="lazy" data-preview="${encodeURIComponent(imgSrc)}" data-prompt="${encodeURIComponent(promptTxt)}">` : '<div class="history-thumb" style="display:flex;align-items:center;justify-content:center;font-size:24px;">🖼️</div>'}
-                                <div class="history-info" data-view="${item.id}">
-                                    <div class="history-prompt" title="${promptTxt.replace(/"/g,'&quot;')}">${promptTxt}</div>
-                                    <div class="history-meta">
-                                        <span>${item.time} · ${item.aspect}</span>
-                                    </div>
-                                </div>
-                                <div class="history-actions">
-                                    ${imgSrc ? `<button class="history-download-btn" data-download="${encodeURIComponent(imgSrc)}" title="下载">💾</button>` : ''}
-                                    <button class="history-delete" data-delete="${item.id}" title="删除">删除</button>
-                                </div>
-                            </div>`;
-                        }).join('');
-                    } else {
-                        container.innerHTML = '<div class="empty-state">暂无历史记录</div>';
-                    }
-                }
-            } catch (err) {
-                console.error('加载历史记录失败:', err);
-                // 降级到 localStorage
-                const history = getHistory();
-                if (history.length === 0) {
-                    container.innerHTML = '<div class="empty-state">暂无历史记录</div>';
-                } else {
-                    container.innerHTML = history.map(item => {
-                        const imgSrc = item.imageUrl || '';
-                        const promptTxt = item.prompt || '';
-                        return `<div class="history-item">
-                            ${imgSrc ? `<img class="history-thumb" src="${imgSrc}" alt="缩略图" onerror="this.style.display='none'" loading="lazy" data-preview="${encodeURIComponent(imgSrc)}" data-prompt="${encodeURIComponent(promptTxt)}">` : '<div class="history-thumb" style="display:flex;align-items:center;justify-content:center;font-size:24px;">🖼️</div>'}
-                            <div class="history-info" data-view="${item.id}">
-                                <div class="history-prompt" title="${promptTxt.replace(/"/g,'&quot;')}">${promptTxt}</div>
-                                <div class="history-meta">
-                                    <span>${item.time} · ${item.aspect}</span>
-                                </div>
-                            </div>
-                            <div class="history-actions">
-                                ${imgSrc ? `<button class="history-download-btn" data-download="${encodeURIComponent(imgSrc)}" title="下载">💾</button>` : ''}
-                                <button class="history-delete" data-delete="${item.id}" title="删除">删除</button>
-                            </div>
-                        </div>`;
-                    }).join('');
-                }
-            }
-        }
-
-        // 历史记录列表事件委托
-        document.addEventListener('click', function(e) {
-            const target = e.target;
-            // 缩略图点击 → 预览
-            if (target.classList.contains('history-thumb') && target.dataset.preview) {
-                e.stopPropagation();
-                const imgUrl = decodeURIComponent(target.dataset.preview);
-                const promptTxt = decodeURIComponent(target.dataset.prompt || '');
-                previewHistoryImage(imgUrl, promptTxt);
+            if (history.length === 0) {
+                container.innerHTML = '<div class="empty-state">暂无历史记录</div>';
                 return;
             }
-            // 下载按钮
-            if (target.classList.contains('history-download-btn') && target.dataset.download) {
-                e.stopPropagation();
-                downloadImage(decodeURIComponent(target.dataset.download));
-                return;
-            }
-            // 删除按钮
-            if (target.classList.contains('history-delete')) {
-                e.stopPropagation();
-                if (target.dataset.deleteDb !== undefined) {
-                    deleteHistoryDb(parseInt(target.dataset.deleteDb));
-                } else if (target.dataset.delete !== undefined) {
-                    deleteHistory(parseInt(target.dataset.delete));
-                }
-                return;
-            }
-            // 历史记录信息区点击 → 查看
-            const infoEl = target.closest('.history-info');
-            if (infoEl) {
-                if (infoEl.dataset.viewDb !== undefined) {
-                    viewHistoryDb(parseInt(infoEl.dataset.viewDb));
-                } else if (infoEl.dataset.view !== undefined) {
-                    viewHistory(parseInt(infoEl.dataset.view));
-                }
-            }
-        });
 
-        // 预览历史记录图片（全屏查看）
-        function previewHistoryImage(url, prompt) {
-            const overlayId = 'previewOverlay_' + Date.now();
-            const overlay = document.createElement('div');
-            overlay.id = overlayId;
-            overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.9);z-index:10000;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;';
-            overlay.innerHTML = `
-                <div style="max-width:90vw;max-height:80vh;text-align:center;">
-                    <img src="${url}" style="max-width:100%;max-height:70vh;border-radius:8px;box-shadow:0 8px 32px rgba(0,0,0,0.3);" alt="预览">
-                    <p style="color:#fff;margin-top:12px;font-size:14px;max-width:600px;">${(prompt || '').replace(/</g, '&lt;')}</p>
+            container.innerHTML = history.map(item => `
+                <div class="history-item" onclick="viewHistory(${item.id})">
+                    <div class="history-prompt">${item.prompt}</div>
+                    <div class="history-meta">
+                        <span>${item.time} · ${item.aspect}</span>
+                        <span class="history-delete" onclick="event.stopPropagation(); deleteHistory(${item.id})">删除</span>
+                    </div>
                 </div>
-                <div style="position:fixed;bottom:30px;display:flex;gap:12px;">
-                    <button class="preview-download-btn" data-url="${encodeURIComponent(url)}" style="padding:12px 24px;background:linear-gradient(135deg,#667eea,#764ba2);color:white;border:none;border-radius:8px;font-size:14px;cursor:pointer;">💾 下载</button>
-                    <button class="preview-close-btn" style="padding:12px 24px;background:rgba(255,255,255,0.2);color:white;border:1px solid rgba(255,255,255,0.3);border-radius:8px;font-size:14px;cursor:pointer;">✕ 关闭</button>
-                </div>
-            `;
-            overlay.addEventListener('click', function(e) {
-                if (e.target === overlay) overlay.remove();
-                if (e.target.classList.contains('preview-download-btn')) {
-                    downloadImage(decodeURIComponent(e.target.dataset.url));
-                }
-                if (e.target.classList.contains('preview-close-btn')) {
-                    overlay.remove();
-                }
-            });
-            document.body.appendChild(overlay);
-        }
-
-        // 查看数据库历史记录
-        async function viewHistoryDb(index) {
-            try {
-                const response = await AuthService.fetch(API_BASE + '/history?limit=1&offset=' + index);
-                const data = await response.json();
-                if (data.code === 200 && data.data?.history?.[0]) {
-                    const item = data.data.history[0];
-                    // 直接切换 Tab（不清理输入）
-                    document.querySelectorAll('.panel-tab').forEach(t => t.classList.remove('active'));
-                    document.querySelectorAll('.panel-content').forEach(c => c.style.display = 'none');
-                    document.getElementById('tab-generate').style.display = 'block';
-                    document.querySelector('.panel-tab[onclick*=generate]').classList.add('active');
-                    document.getElementById('imageDisplay').style.display = '';
-                    document.getElementById('detailWaterfall').style.display = 'none';
-                    document.getElementById('promptInput').value = item.prompt || '';
-                    if (item.image_url) showImage(item.image_url, item.prompt || '');
-                }
-            } catch (err) {
-                console.error('查看历史记录失败:', err);
-            }
-        }
-
-        // 删除数据库历史记录
-        async function deleteHistoryDb(index) {
-            // 暂时不支持删除数据库记录，仅提示
-            showToast('❌ 数据库记录暂不支持删除', 'error', 2000);
+            `).join('');
         }
 
         function viewHistory(id) {
             const history = getHistory();
             const item = history.find(h => h.id === id);
             if (!item) return;
-            // 直接切换 Tab（不清理输入）
-            document.querySelectorAll('.panel-tab').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.panel-content').forEach(c => c.style.display = 'none');
-            document.getElementById('tab-generate').style.display = 'block';
-            document.querySelector('.panel-tab[onclick*=generate]').classList.add('active');
-            document.getElementById('imageDisplay').style.display = '';
-            document.getElementById('detailWaterfall').style.display = 'none';
+
             document.getElementById('promptInput').value = item.prompt;
+            switchTab('generate');
+            // 显示图片
             showImage(item.imageUrl, item.prompt);
         }
 
@@ -3802,7 +3325,7 @@
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
                             prompt: detailPrompt.prompt,
-                            aspect_ratio: detailAspectRatio,
+                            aspect_ratio: detailPrompt.aspect || '3:4',
                             reference_images: detailReferenceImages.length > 0 ? detailReferenceImages : undefined
                         })
                     });
@@ -3903,7 +3426,7 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         prompt: detailPrompt.prompt,
-                        aspect_ratio: detailAspectRatio,
+                        aspect_ratio: detailPrompt.aspect || '3:4',
                         reference_images: detailReferenceImages.length > 0 ? detailReferenceImages : undefined
                     })
                 });
@@ -4082,12 +3605,6 @@
             }
         }
 
-        // 调试信息 (已隐藏)
-        // setTimeout(() => {
-        //     div style="display:none" x="const debug = document.createElement('div');
-        //     debug.style.cssText = 'position:fixed;bottom:10px;left:10px;background:#333;color:#fff;padding:8px 12px;border-radius:6px;font-size:12px;z-index:100;opacity:0.8;';
-        //     document.body.appendChild(debug);"
-        // }, 2000);
     </script>
 </body>
 </html>
